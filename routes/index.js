@@ -7,14 +7,21 @@ var obj = require('../bin/www');
 var conString = "mongodb://127.0.0.1:27017/meanchatappdb";
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Express Chat' });
 });
 
 mongoose.Promise = Promise
+var Schema = mongoose.Schema;
+var ChatsSchema = new Schema({
+  name: {type: String, ref:'Users'},
+  chat: String
+});
+// Model for chats
+var Chats = mongoose.model("ChatsData", ChatsSchema)
 
-var Chats = mongoose.model("Chats", {
-    name: String,
-    chat: String
+var Users = mongoose.model("Users", {
+  _id: Schema.Types.ObjectId,
+  userName: {type: String, required: true, unique: true, dropDups: true}
 })
 mongoose.connect(conString, { useNewUrlParser: true },(err) => {
   console.log("Database connection", err)
