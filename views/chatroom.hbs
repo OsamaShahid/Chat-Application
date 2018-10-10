@@ -1,70 +1,143 @@
+<style>
+    /* The snackbar - position it at the bottom and in the middle of the screen */
+    #snackbar {
+        visibility: hidden; /* Hidden by default. Visible on click */
+        min-width: 250px; /* Set a default minimum width */
+        margin-left: -125px; /* Divide value of min-width by 2 */
+        background-color: #333; /* Black background color */
+        color: #fff; /* White text color */
+        text-align: center; /* Centered text */
+        border-radius: 2px; /* Rounded borders */
+        padding: 16px; /* Padding */
+        position: fixed; /* Sit on top of the screen */
+        z-index: 1; /* Add a z-index if needed */
+        left: 50%; /* Center the snackbar */
+        bottom: 30px; /* 30px from the bottom */
+    }
+
+    /* Show the snackbar when clicking on a button (class added with JavaScript) */
+    #snackbar.show {
+        visibility: visible; /* Show the snackbar */
+        /* Add animation: Take 0.5 seconds to fade in and out the snackbar. 
+    However, delay the fade out process for 2.5 seconds */
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    /* Animations to fade the snackbar in and out */
+    @-webkit-keyframes fadein {
+        from {bottom: 0; opacity: 0;} 
+        to {bottom: 30px; opacity: 1;}
+    }
+
+    @keyframes fadein {
+        from {bottom: 0; opacity: 0;}
+        to {bottom: 30px; opacity: 1;}
+    }
+
+    @-webkit-keyframes fadeout {
+        from {bottom: 30px; opacity: 1;} 
+        to {bottom: 0; opacity: 0;}
+    }
+
+    @keyframes fadeout {
+        from {bottom: 30px; opacity: 1;}
+        to {bottom: 0; opacity: 0;}
+    }
+</style>
 <div class="container">
-        <div class="row">
-            <div class="col-md-6 offset-md-3 col-sm-12">
-                <h1 class="text-center" style="color:rgb(255, 255, 255)">
-                    MongOOseChat
-                    <button id="clear" class="btn btn-danger">Clear</button>
-                </h1>
-                <div id="chat">
-                    <input type="text" id="username" class="form-control" value="{{userName}}" placeholder="Enter name..." readonly>
-                    <br>
-                    <div class="card">
-                        <textarea id="messages" style="background-image:url(/images/bg_1.png); opacity: 0.9 ; background-attachment: fixed; background-repeat: no-repeat" class="card-block" readonly style="position:relative"></textarea>
-                    </div>
-                    <br>
-                    <textarea id="textarea" class="form-control" placeholder="Enter message..."></textarea>
+    <div class="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+            <h1 class="text-center" style="color:rgb(255, 255, 255)">
+                MongOOseChat
+                <button id="clear" class="btn btn-danger">Clear</button>
+            </h1>
+            <div id="chat">
+                <input type="text" id="username" class="form-control" value="{{userName}}" placeholder="Enter name..." readonly>
+                <br>
+                <div class="card">
+                    <textarea id="messages" style="background-image:url(/images/bg_1.png); opacity: 0.9 ; background-attachment: fixed; background-repeat: no-repeat" class="card-block" readonly style="position:relative"></textarea>
                 </div>
+                <br>
+                <p class="lead emoji-picker-container">
+                    <textarea class="form-control textarea-control" id="textarea" rows="3" placeholder="type your message here" data-emojiable="true"></textarea>
+                </p>
             </div>
+            <button id="sendBtn" class="btn" onclick="broadCastMsg();" onmouseover="" style="cursor: pointer;"><i class="fa fa-send"></i>Send</button>
         </div>
     </div>
-    <script>
-        var socket = io()
-        socket.connect('http://192.168.34.54:4747');
-        socket.on("chat", addChat)
-        $(() => {
-            getChats()
-            textarea.addEventListener('keydown', function(event){
-                        if(event.which === 13 && event.shiftKey == false){
-                            // Emit to server input
-                            if( $('#username').val() != '')
-                            {
-                                var chatMessage = {
-                                    name: $("#username").val(), chat: $("#textarea").val()
-                                }
-                                postChat(chatMessage)
-                                var obj = document.getElementById('textarea');
-                                obj.value = '';
-                            }
-                            else{
-                                alert('Plear enter name of the sender!!!!');
-                            }
-                        }
-                    })
-        })
+</div>
+<script>
+    var socket = io()
+    socket.connect('http://192.168.34.54:4747/chatroom');
+    socket.on("chat", addChat)
+    $(() => {
+        getChats();
+    })
 
-        function postChat(chat) {
-            $.post("http://192.168.34.54:4747/chats", chat)
+    function broadCastMsg() {
+        if( $('#textarea').val() != '')
+        {
+            var chatMessage = {
+                name: $("#username").val(), chat: $("#textarea").val()
+            }
+            postChat(chatMessage)
+            var obj = $('#textarea');
+            obj.value = null;
+            var pera = $('p');
+            pera.value = null;
         }
-
-        function getChats() {
-            $.get("/chats", (chats) => {
-                chats.forEach(addChat)
-            })
+        else{
+            alert('cannot send empty message!!!!');
         }
+    }
+    function postChat(chat) {
+        $.post("/chatroom/putChats", chat)
+    }
 
-        function addChat(chatObj) {
-            var message = document.getElementById('messages');
-            message.value +=  "\n" + chatObj.name+": "+chatObj.chat;
-        }
+    function getChats() {
+        $.post("/chatroom/getchats")
+    }
 
-        socket.on('cleared', function(){
-            var message = document.getElementById('messages');
-            message.value = '';
-        });
+    function addChat(chatObj) {
+        var message = document.getElementById('messages');
+        message.value +=  "\n" + chatObj.name+": "+chatObj.chat;
+    }
 
-        // Handle Chat Clear
-        clear.addEventListener('click', function(){
-            $.post("http://192.168.34.54:4747/clear")
-        });
+    socket.on('getChats',printChats)
 
-    </script>
+    function printChats(chatsList)
+    {
+        var message = document.getElementById('messages');
+        message.value = '';
+        chatsList.forEach(addChat)
+    }
+
+    socket.on('cleared', function(){
+        var message = document.getElementById('messages');
+        message.value = '';
+    });
+
+    // Handle Chat Clear
+    clear.addEventListener('click', function(){
+        $.post("/chatroom/clear")
+    });
+
+    function myFunction() {
+        // Get the snackbar DIV
+        var x = document.getElementById("snackbar");
+
+        // Add the "show" class to DIV
+        x.className = "show";
+
+        // After 3 seconds, remove the show class from DIV
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+    }
+    (function($) {
+    $(document).ready(function() {
+        myFunction();
+    });
+})(jQuery);
+</script>
+<!-- The actual snackbar -->
+<div id="snackbar">{{userName}} joind the chatroom!!!!!</div>

@@ -4,12 +4,12 @@ var obj = require('../bin/www');
 var db = require('../databaseModels');
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.render('chatroom', {title: 'Welcome to Chat Room'});
+router.get('/:uName', function(req, res, next) {
+  res.render('chatroom', {title: 'Welcome to Chat Room', userName: req.params.uName});
 });
 
 // save a new chat message in database
-router.post("/chats", async (req, res) => {
+router.post("/putChats", async (req, res) => {
   try {
       var chat = new db.Chats(req.body)
       await chat.save()
@@ -23,9 +23,10 @@ router.post("/chats", async (req, res) => {
 })
 
 // Get chat messages from detabase and return to client
-router.get("/chats", (req, res) => {
+router.post("/getchats", function() {
   db.Chats.find({}, (error, chats) => {
-      res.send(chats)
+      //Emit the event
+      obj.io.emit("getChats", chats)
   })
 })
 

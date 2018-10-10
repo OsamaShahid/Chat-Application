@@ -14,16 +14,15 @@ router.get('/', function(req, res, next) {
 
 
 //here we will save the username of the New user
-router.get("/setUserName/:userName", function(req,res,next) {
+router.post("/setUserName", async (req,res) => {
   try{
-    var userObj = {
-      userName: req.params.userName
-    }
-    var newUser = new db.Users(userObj);
-    newUser.save()
-    //Emit the event that a new user has joined the chat
-    obj.io.emit("newUserJoined",req.params.userName)
-    return res.redirect(301, '/chatroom');
+    var newUser = new db.Users(req.body);
+    await newUser.save()
+    res.sendStatus(200);
+    obj.io.emit("newUserEntered", {
+      Name: req.body.userName,
+      NewEntry: true,
+    })
   }
   catch(error) {
     res.sendStatus(500);
