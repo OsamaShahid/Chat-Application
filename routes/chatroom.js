@@ -9,7 +9,7 @@ router.get('/:uName', function(req, res, next) {
 });
 
 // save a new chat message in database
-router.post("/putChats", async (req, res) => {
+router.post("/putChats", async (req, res, next) => {
   try {
       var chat = new db.Chats(req.body)
       await chat.save()
@@ -23,15 +23,15 @@ router.post("/putChats", async (req, res) => {
 })
 
 // Get chat messages from detabase and return to client
-router.post("/getchats", function() {
+router.get("/send/AllChats", function(req,res,next) {
   db.Chats.find({}, (error, chats) => {
-      //Emit the event
-      obj.io.emit("getChats", chats)
+      res.send(chats)
   })
+  
 })
 
 // clear method for clearing the chats
-router.post("/clear", function(){
+router.post("/clear", function(req,res,next){
   // Remove all chats from collection
   db.Chats.remove({}, function(){
       obj.io.emit('cleared');

@@ -68,9 +68,6 @@
     }
 </style>
 <script>
-    var socket = io()
-    socket.connect('http://192.168.34.54:4747');
-    socket.on("newUserEntered", redirectNewUser);
     function setName() {
         if($("#uname").val() === "") {
             alert(" Pick a Username Please!!!!  ");
@@ -80,12 +77,10 @@
             var userObj = {
                 userName: Uname
             }
-            $.post("http://192.168.34.54:4747/setUserName" , userObj)  
+            $.post("http://192.168.34.54:4747/setUserName" , userObj, function(data,status) {
+                window.location.href = "http://192.168.34.54:4747/chatroom/" + data.userName;
+            })  
         }
-    }
-    function redirectNewUser(userObject) {
-        socket.close();
-        window.location.href = 'http://192.168.34.54:4747/chatroom/' + userObject.Name;
     }
 </script>
 <h1>

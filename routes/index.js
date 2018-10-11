@@ -14,15 +14,11 @@ router.get('/', function(req, res, next) {
 
 
 //here we will save the username of the New user
-router.post("/setUserName", async (req,res) => {
+router.post("/setUserName", (req,res, next) => {
   try{
     var newUser = new db.Users(req.body);
-    await newUser.save()
-    res.sendStatus(200);
-    obj.io.emit("newUserEntered", {
-      Name: req.body.userName,
-      NewEntry: true,
-    })
+    newUser.save()
+    res.send(newUser);
   }
   catch(error) {
     res.sendStatus(500);

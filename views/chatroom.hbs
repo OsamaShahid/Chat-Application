@@ -1,56 +1,14 @@
-<style>
-    /* The snackbar - position it at the bottom and in the middle of the screen */
-    #snackbar {
-        visibility: hidden; /* Hidden by default. Visible on click */
-        min-width: 250px; /* Set a default minimum width */
-        margin-left: -125px; /* Divide value of min-width by 2 */
-        background-color: #333; /* Black background color */
-        color: #fff; /* White text color */
-        text-align: center; /* Centered text */
-        border-radius: 2px; /* Rounded borders */
-        padding: 16px; /* Padding */
-        position: fixed; /* Sit on top of the screen */
-        z-index: 1; /* Add a z-index if needed */
-        left: 50%; /* Center the snackbar */
-        bottom: 30px; /* 30px from the bottom */
-    }
+<link href="/stylesheets/cRoom.css" rel="stylesheet">
+<link href="/stylesheets/chatroom.css" rel="stylesheet">
+<script src="/javascripts/croomNew.js"></script>
+<script src="/javascripts/cRoom.js"></script>
 
-    /* Show the snackbar when clicking on a button (class added with JavaScript) */
-    #snackbar.show {
-        visibility: visible; /* Show the snackbar */
-        /* Add animation: Take 0.5 seconds to fade in and out the snackbar. 
-    However, delay the fade out process for 2.5 seconds */
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    }
-
-    /* Animations to fade the snackbar in and out */
-    @-webkit-keyframes fadein {
-        from {bottom: 0; opacity: 0;} 
-        to {bottom: 30px; opacity: 1;}
-    }
-
-    @keyframes fadein {
-        from {bottom: 0; opacity: 0;}
-        to {bottom: 30px; opacity: 1;}
-    }
-
-    @-webkit-keyframes fadeout {
-        from {bottom: 30px; opacity: 1;} 
-        to {bottom: 0; opacity: 0;}
-    }
-
-    @keyframes fadeout {
-        from {bottom: 30px; opacity: 1;}
-        to {bottom: 0; opacity: 0;}
-    }
-</style>
-<div class="container">
+{{!-- <div class="container">
     <div class="row">
         <div class="col-md-6 offset-md-3 col-sm-12">
             <h1 class="text-center" style="color:rgb(255, 255, 255)">
                 MongOOseChat
-                <button id="clear" class="btn btn-danger">Clear</button>
+                <button id="clear" class="btn btn-danger" onclick="clearChats();">Clear</button>
             </h1>
             <div id="chat">
                 <input type="text" id="username" class="form-control" value="{{userName}}" placeholder="Enter name..." readonly>
@@ -66,78 +24,69 @@
             <button id="sendBtn" class="btn" onclick="broadCastMsg();" onmouseover="" style="cursor: pointer;"><i class="fa fa-send"></i>Send</button>
         </div>
     </div>
+</div> --}}
+<div class="container">
+    <h1 class="text-center" style="color:aliceblue">MongOOseChat</h1>
+    <div class="messaging" >
+      <div class="inbox_msg" >
+        <div class="mesgs" >
+          <div class="msg_history">
+            <div class="incoming_msg">
+              <div class="incoming_msg_img"> <img src="" alt="sunil" style="color:aliceblue"> </div>
+              <div class="received_msg">
+                <div class="received_withd_msg">
+                  <p>Test which is a new approach to have all
+                    solutions</p>
+                  <span class="time_date"> 11:01 AM    |    June 9</span></div>
+              </div>
+            </div>
+            <div class="outgoing_msg">
+              <div class="sent_msg">
+                <p>Test which is a new approach to have all
+                  solutions</p>
+                <span class="time_date"> 11:01 AM    |    June 9</span> </div>
+            </div>
+            <div class="incoming_msg">
+              <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
+              <div class="received_msg">
+                <div class="received_withd_msg">
+                  <p>Test, which is a new approach to have</p>
+                  <span class="time_date"> 11:01 AM    |    Yesterday</span></div>
+              </div>
+            </div>
+            <div class="outgoing_msg">
+              <div class="sent_msg">
+                <p>Apollo University, Delhi, India Test</p>
+                <span class="time_date"> 11:01 AM    |    Today</span> </div>
+            </div>
+            <div class="incoming_msg">
+              <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
+              <div class="received_msg">
+                <div class="received_withd_msg">
+                  <p>We work directly with our designers and suppliers,
+                    and sell direct to you, which means quality, exclusive
+                    products, at a price anyone can afford.</p>
+                  <span class="time_date"> 11:01 AM    |    Today</span></div>
+              </div>
+            </div>
+          </div>
+          
+            <div class="type_msg">
+                <div class="input_msg_write">
+                    <p class="lead emoji-picker-container">
+                        <textarea class="write_msg" rows="3" placeholder="type your message here" data-emojiable="true"></textarea>
+                        <button class="msg_send_btn" type="button" ><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                    </p>
+                
+                </div>
+            </div>
+        </div>
+      </div> 
+    </div>
 </div>
-<script>
-    var socket = io()
-    socket.connect('http://192.168.34.54:4747/chatroom');
-    socket.on("chat", addChat)
-    $(() => {
-        getChats();
-    })
-
-    function broadCastMsg() {
-        if( $('#textarea').val() != '')
-        {
-            var chatMessage = {
-                name: $("#username").val(), chat: $("#textarea").val()
-            }
-            postChat(chatMessage)
-            var obj = $('#textarea');
-            obj.value = null;
-            var pera = $('p');
-            pera.value = null;
-        }
-        else{
-            alert('cannot send empty message!!!!');
-        }
-    }
-    function postChat(chat) {
-        $.post("/chatroom/putChats", chat)
-    }
-
-    function getChats() {
-        $.post("/chatroom/getchats")
-    }
-
-    function addChat(chatObj) {
-        var message = document.getElementById('messages');
-        message.value +=  "\n" + chatObj.name+": "+chatObj.chat;
-    }
-
-    socket.on('getChats',printChats)
-
-    function printChats(chatsList)
-    {
-        var message = document.getElementById('messages');
-        message.value = '';
-        chatsList.forEach(addChat)
-    }
-
-    socket.on('cleared', function(){
-        var message = document.getElementById('messages');
-        message.value = '';
-    });
-
-    // Handle Chat Clear
-    clear.addEventListener('click', function(){
-        $.post("/chatroom/clear")
-    });
-
-    function myFunction() {
-        // Get the snackbar DIV
-        var x = document.getElementById("snackbar");
-
-        // Add the "show" class to DIV
-        x.className = "show";
-
-        // After 3 seconds, remove the show class from DIV
-        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
-    }
-    (function($) {
-    $(document).ready(function() {
-        myFunction();
-    });
-})(jQuery);
-</script>
 <!-- The actual snackbar -->
 <div id="snackbar">{{userName}} joind the chatroom!!!!!</div>
+<script src="/javascripts/config.js"></script>
+<script src="/javascripts/util.js"></script>
+<script src="/javascripts/jquery.emojiarea.js"></script>
+<script src="/javascripts/emoji-picker.js"></script>
