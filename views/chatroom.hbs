@@ -1,83 +1,25 @@
 <link href="/stylesheets/cRoom.css" rel="stylesheet">
 <link href="/stylesheets/chatroom.css" rel="stylesheet">
-<script src="/javascripts/croomNew.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="/javascripts/cRoom.js"></script>
-
-{{!-- <div class="container">
-    <div class="row">
-        <div class="col-md-6 offset-md-3 col-sm-12">
-            <h1 class="text-center" style="color:rgb(255, 255, 255)">
-                MongOOseChat
-                <button id="clear" class="btn btn-danger" onclick="clearChats();">Clear</button>
-            </h1>
-            <div id="chat">
-                <input type="text" id="username" class="form-control" value="{{userName}}" placeholder="Enter name..." readonly>
-                <br>
-                <div class="card">
-                    <textarea id="messages" style="background-image:url(/images/bg_1.png); opacity: 0.9 ; background-attachment: fixed; background-repeat: no-repeat" class="card-block" readonly style="position:relative"></textarea>
-                </div>
-                <br>
-                <p class="lead emoji-picker-container">
-                    <textarea class="form-control textarea-control" id="textarea" rows="3" placeholder="type your message here" data-emojiable="true"></textarea>
-                </p>
-            </div>
-            <button id="sendBtn" class="btn" onclick="broadCastMsg();" onmouseover="" style="cursor: pointer;"><i class="fa fa-send"></i>Send</button>
-        </div>
-    </div>
-</div> --}}
 <div class="container">
     <h1 class="text-center" style="color:aliceblue">MongOOseChat</h1>
     <div class="messaging" >
       <div class="inbox_msg" >
         <div class="mesgs" >
           <div class="msg_history">
-            <div class="incoming_msg">
-              <div class="incoming_msg_img"> <img src="" alt="sunil" style="color:aliceblue"> </div>
-              <div class="received_msg">
-                <div class="received_withd_msg">
-                  <p>Test which is a new approach to have all
-                    solutions</p>
-                  <span class="time_date"> 11:01 AM    |    June 9</span></div>
-              </div>
-            </div>
-            <div class="outgoing_msg">
-              <div class="sent_msg">
-                <p>Test which is a new approach to have all
-                  solutions</p>
-                <span class="time_date"> 11:01 AM    |    June 9</span> </div>
-            </div>
-            <div class="incoming_msg">
-              <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-              <div class="received_msg">
-                <div class="received_withd_msg">
-                  <p>Test, which is a new approach to have</p>
-                  <span class="time_date"> 11:01 AM    |    Yesterday</span></div>
-              </div>
-            </div>
-            <div class="outgoing_msg">
-              <div class="sent_msg">
-                <p>Apollo University, Delhi, India Test</p>
-                <span class="time_date"> 11:01 AM    |    Today</span> </div>
-            </div>
-            <div class="incoming_msg">
-              <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-              <div class="received_msg">
-                <div class="received_withd_msg">
-                  <p>We work directly with our designers and suppliers,
-                    and sell direct to you, which means quality, exclusive
-                    products, at a price anyone can afford.</p>
-                  <span class="time_date"> 11:01 AM    |    Today</span></div>
-              </div>
-            </div>
           </div>
-          
             <div class="type_msg">
                 <div class="input_msg_write">
                     <p class="lead emoji-picker-container">
                         <textarea class="write_msg" rows="3" placeholder="type your message here" data-emojiable="true"></textarea>
-                        <button class="msg_send_btn" type="button" ><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                        <button class="msg_send_btn" type="button" onclick="broadCastMsg();" ><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                        <div class="upload-btn-wrapper">
+                          <button class="upload_btn"><i class="fa fa-camera" aria-hidden="true"></i></button>
+                          <input type="file" name="myfile" id="img_input" accept='image/*' />
+                        </div>
                     </p>
-                
                 </div>
             </div>
         </div>
@@ -85,7 +27,8 @@
     </div>
 </div>
 <!-- The actual snackbar -->
-<div id="snackbar">{{userName}} joind the chatroom!!!!!</div>
+<div id="snackbar" ></div>
+<input type="hidden" id="thisName" value="{{userName}}">
 <script src="/javascripts/config.js"></script>
 <script src="/javascripts/util.js"></script>
 <script src="/javascripts/jquery.emojiarea.js"></script>

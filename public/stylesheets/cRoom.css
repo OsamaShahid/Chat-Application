@@ -44,13 +44,31 @@
         to {bottom: 0; opacity: 0;}
     }
 
-    @font-face {
-        font-family: chatFont;
-        src: url(/stylesheets/FlunkiesBB.otf);
-    }
-    
-    #messages {
-        height:300px;
-        font-family: chatFont;
-        color: peachpuff
-    }
+    .upload-btn-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+      }
+      
+      .upload_btn {
+        background: darkgreen none repeat scroll 0 0;
+        border: medium none;
+        border-radius: 50%;
+        color: #fff;
+        cursor: pointer;
+        font-size: 17px;
+        height: 33px;
+        position: relative;
+        right: 0;
+        top: 0;
+        width: 33px;
+      }
+      
+      .upload-btn-wrapper input[type=file] {
+        font-size: 100px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+      }
+

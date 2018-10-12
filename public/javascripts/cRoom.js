@@ -3,16 +3,45 @@ var socket = io()
     socket.on("chat", addChat)
 
     function broadCastMsg() {
-        if( $('#textarea').val() != '')
+
+        if( $('.write_msg').val() != '' || ($('#img_input').val()))
         {
-            var chatMessage = {
-                name: $("#username").val(), chat: $("#textarea").val()
+            if($('#img_input').val())
+            {
+                var file_data = $('#img_input').prop('files')[0];
+                var form_data = new FormData();
+                var chatMessage = {
+                    name: $("#thisName").val(), chat: $(".write_msg").val()
+                }
+                form_data.append('file', file_data);
+                form_data.append('chatMessage',chatMessage);
+                $.ajax({
+                    url: '/chatroom/img/upload', // point to server-side controller method
+                    dataType: 'text', // what to expect back from the server
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    data: form_data,
+                    type: 'post',
+                    success: function (response) {
+                      
+                    },
+                    error: function (response) {
+                        alert(response)
+                    }
+                });
+                var textobj = $('.write_msg');
+                textobj.empty();
             }
-            postChat(chatMessage)
-            var obj = $('#textarea');
-            obj.value = null;
-            var pera = $('p');
-            pera.value = null;
+            else
+            {
+                var chatMessage = {
+                    name: $("#thisName").val(), chat: $(".write_msg").val()
+                }
+                postChat(chatMessage)
+                var textobj = $('.write_msg');
+                textobj.empty();
+            }
         }
         else{
             alert('cannot send empty message!!!!');
@@ -29,21 +58,43 @@ var socket = io()
     }
 
     function addChat(chatObj) {
-        var message = document.getElementById('messages');
-        message.value +=  "\n" + chatObj.name+": "+chatObj.chat;
+        var today = new Date();
+        var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+        var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+        var dateTime = date+' '+time
+        if(chatObj.name === $('#thisName').val())
+        {
+            var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><span class="time_date">'+ dateTime +'</span> </div></div>';
+            $('.msg_history').append(newSentMsg);
+        }
+        else {
+            var newRecvMsg = '<div class="incoming_msg">' +
+              '<div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.name +'" style="color:darkgreen"> </div>' +
+              '<div class="received_msg">' +
+                '<div class="received_withd_msg">' +
+                  '<p style="">' + chatObj.chat + '</p>' +
+                  '<span class="time_date">' + dateTime + ' | ' + chatObj.name + '</span></div>' +
+              '</div>' +
+            '</div>';
+            $('.msg_history').append(newRecvMsg);
+        }
     }
-
-    //socket.on('getChats',printChats)
 
     function printChats(chatsList)
     {
         chatsList.forEach(addChat)
     }
 
-    socket.on('cleared', function(){
-        var message = document.getElementById('messages');
-        message.value = '';
+    socket.on('NewUserEntered', function(newUser){
+        if($('#thisName').val() != newUser)
+        {
+            $('#snackbar').empty();
+            $('#snackbar').append( newUser + ' joind the chatroom!!!!!')
+            myFunction();
+        }
     });
+
+
 
     // Handle Chat Clear
     function clearChats() {
@@ -58,14 +109,23 @@ var socket = io()
         x.className = "show";
 
         // After 3 seconds, remove the show class from DIV
-        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 2000);
     }
     (function($) {
     $(document).ready(function() {
-        myFunction();
         getChats();
     });
 })(jQuery);
+
+$("#select_img").click(function () {
+    $('input[type="file"]').trigger('click');
+    alert('yoo');
+});
+  
+$('input[type="file"]').on('change', function() {
+    var val = $(this).val();
+    $(this).siblings('span').text(val);
+});
 
 $(function() 
 {
