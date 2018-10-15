@@ -81,7 +81,13 @@
                 userName: Uname
             }
             $.post("http://192.168.34.54:4747/setUserName" , userObj, function(data,status) {
-                window.location.href = "http://192.168.34.54:4747/chatroom/" + data.userName;
+                if(data.check)
+                {
+                    window.location.href = "http://192.168.34.54:4747/chatroom/" + data.user.userName;
+                }
+                else {
+                    alert('user already exists')
+                }
             })  
         }
     }
