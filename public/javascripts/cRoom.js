@@ -2,51 +2,7 @@ var socket = io()
     socket.connect('http://192.168.34.54:4747/');
     socket.on("chat", addChat)
 
-    function broadCastMsg() {
-
-        if( $('.write_msg').val() != '' || ($('#img_input').val()))
-        {
-            if($('#img_input').val())
-            {
-                var file_data = $('#img_input').prop('files')[0];
-                var form_data = new FormData();
-                var chatMessage = {
-                    name: $("#thisName").val(), chat: $(".write_msg").val()
-                }
-                form_data.append('file', file_data);
-                form_data.append('chatMessage',chatMessage);
-                $.ajax({
-                    url: '/chatroom/img/upload', // point to server-side controller method
-                    dataType: 'text', // what to expect back from the server
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    data: form_data,
-                    type: 'post',
-                    success: function (response) {
-                      
-                    },
-                    error: function (response) {
-                        alert(response)
-                    }
-                });
-                var textobj = $('.write_msg');
-                textobj.empty();
-            }
-            else
-            {
-                var chatMessage = {
-                    name: $("#thisName").val(), chat: $(".write_msg").val()
-                }
-                postChat(chatMessage)
-                var textobj = $('.write_msg');
-                textobj.empty();
-            }
-        }
-        else{
-            alert('cannot send empty message!!!!');
-        }
-    }
+    
     function postChat(chat) {
         $.post("/chatroom/putChats", chat)
     }
@@ -61,22 +17,44 @@ var socket = io()
         var today = new Date();
         var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
         var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        var dateTime = date+' '+time
-        if(chatObj.name === $('#thisName').val())
+        var dateTime = date+' '+time;
+        if(chatObj.chatImage === "")
         {
-            var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><span class="time_date">'+ dateTime +'</span> </div></div>';
-            $('.msg_history').append(newSentMsg);
+            if(chatObj.name === $('#thisName').val())
+            {
+                var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><span class="time_date">'+ dateTime +'</span> </div></div>';
+                $('.msg_history').append(newSentMsg);
+            }
+            else {
+                var newRecvMsg = '<div class="incoming_msg">' +
+                '<div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.name +'" style="color:darkgreen"> </div>' +
+                '<div class="received_msg">' +
+                    '<div class="received_withd_msg">' +
+                    '<p style="">' + chatObj.chat + '</p>' +
+                    '<span class="time_date">' + dateTime + ' | ' + chatObj.name + '</span></div>' +
+                '</div>' +
+                '</div>';
+                $('.msg_history').append(newRecvMsg);
+            }
         }
         else {
-            var newRecvMsg = '<div class="incoming_msg">' +
-              '<div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.name +'" style="color:darkgreen"> </div>' +
-              '<div class="received_msg">' +
-                '<div class="received_withd_msg">' +
-                  '<p style="">' + chatObj.chat + '</p>' +
-                  '<span class="time_date">' + dateTime + ' | ' + chatObj.name + '</span></div>' +
-              '</div>' +
-            '</div>';
-            $('.msg_history').append(newRecvMsg);
+            if(chatObj.name === $('#thisName').val())
+            {
+                var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><img src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img><span class="time_date">'+ dateTime +'</span> </div></div>';
+                $('.msg_history').append(newSentMsg);
+            }
+            else {
+                var newRecvMsg = '<div class="incoming_msg">' +
+                  '<div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.name +'" style="color:darkgreen"> </div>' +
+                  '<div class="received_msg">' +
+                    '<div class="received_withd_msg">' +
+                      '<p style="">' + chatObj.chat + '</p>' +
+                      '<img src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img>' +
+                      '<span class="time_date">' + dateTime + ' | ' + chatObj.name + '</span></div>' +
+                  '</div>' +
+                '</div>';
+                $('.msg_history').append(newRecvMsg);
+            }
         }
     }
 
@@ -94,7 +72,29 @@ var socket = io()
         }
     });
 
-
+    socket.on('imgChat', function(chatObj){
+        var today = new Date();
+        var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+        var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+        var dateTime = date+' '+time
+        if(chatObj.name === $('#thisName').val())
+        {
+            var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><img src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img><span class="time_date">'+ dateTime +'</span> </div></div>';
+            $('.msg_history').append(newSentMsg);
+        }
+        else {
+            var newRecvMsg = '<div class="incoming_msg">' +
+              '<div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.name +'" style="color:darkgreen"> </div>' +
+              '<div class="received_msg">' +
+                '<div class="received_withd_msg">' +
+                  '<p style="">' + chatObj.chat + '</p>' +
+                  '<img src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img>' +
+                  '<span class="time_date">' + dateTime + ' | ' + chatObj.name + '</span></div>' +
+              '</div>' +
+            '</div>';
+            $('.msg_history').append(newRecvMsg);
+        }
+    });
 
     // Handle Chat Clear
     function clearChats() {

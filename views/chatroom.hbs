@@ -2,6 +2,8 @@
 <link href="/stylesheets/chatroom.css" rel="stylesheet">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet"/>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
 <script src="/javascripts/cRoom.js"></script>
 <div class="container">
     <h1 class="text-center" style="color:aliceblue">MongOOseChat</h1>
@@ -12,20 +14,73 @@
           </div>
             <div class="type_msg">
                 <div class="input_msg_write">
-                    <p class="lead emoji-picker-container">
-                        <textarea class="write_msg" rows="3" placeholder="type your message here" data-emojiable="true"></textarea>
-                        <button class="msg_send_btn" type="button" onclick="broadCastMsg();" ><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
-                        <div class="upload-btn-wrapper">
-                          <button class="upload_btn"><i class="fa fa-camera" aria-hidden="true"></i></button>
-                          <input type="file" name="myfile" id="img_input" accept='image/*' />
-                        </div>
-                    </p>
+                    <form class="uploadImage" enctype="multipart/form-data" id="msg_form" action="/chatroom/img/upload" method="POST">
+                            <input type="hidden" name="userName" value="{{userName}}">
+                            <p class="lead emoji-picker-container">
+                                <input class="write_msg" type="text" name="Msg" placeholder="type your message here" data-emojiable="true">
+                            </p>
+                            <div class="upload-btn-wrapper">
+                                <button class="upload_btn"><i class="fa fa-camera" aria-hidden="true"></i></button>
+                                <input type="file" name="msgfile" id="img_input" accept='image/*' />
+                            </div>
+                            <button class="msg_send_btn" type="submit"><i class="fa fa-paper-plane-o" aria-hidden="true"> </i></button>
+                    </form>
                 </div>
             </div>
         </div>
       </div> 
     </div>
 </div>
+
+<script>
+    $(function() {
+    // Get the form.
+    var form = $('#msg_form');
+
+    // Set up an event listener for the contact form.
+    $(form).submit(function(event) {
+        // Stop the browser from submitting the form.
+        event.preventDefault();
+
+        if(($('#img_input').val()))
+        {
+            var msgform = $('#msg_form')[0];
+            formData = new FormData(msgform);
+            $.ajax({
+                url: '/chatroom/img/upload',
+                method: 'post',
+                enctype: 'multipart/form-data',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response){
+                    console.log(response);     
+                }
+            });
+        }
+        else {
+            broadCastMsg()
+        }
+    });
+
+    // TODO: The rest of the code will go here...
+    });
+    function broadCastMsg() {
+
+        if( $('.write_msg').val() != '')
+        {
+            var chatMessage = {
+                name: $("#thisName").val(), chat: $(".write_msg").val(), chatImage: ""
+            }
+            postChat(chatMessage)
+            var textobj = $('.write_msg');
+            textobj.empty();
+        }
+        else{
+            alert('cannot send empty message!!!!');
+        }
+    }
+</script>
 <!-- The actual snackbar -->
 <div id="snackbar" ></div>
 <input type="hidden" id="thisName" value="{{userName}}">

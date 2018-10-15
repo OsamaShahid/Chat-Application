@@ -3,41 +3,53 @@ var router = express.Router();
 var obj = require('../bin/www');
 var db = require('../databaseModels');
 var multer  = require('multer');
-var upload = multer({ dest: 'upload/'});
-var fs = require('fs');
 
 // Set The Storage Engine
 const storage = multer.diskStorage({
-  destination: '../public/uploads/',
+  destination: function(req,file,cb) {
+    cb(null,'./public/uploads/')
+  },
   filename: function(req, file, cb){
-    cb(null,file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    cb(null,file.fieldname + '-' + Date.now().toString() + file.originalname);
   }
 });
 
 // Init Upload
-var type = upload.single('myfile');
+const upload = multer({
+  storage: storage
+});
+
 
 
 /* GET users listing. */
 router.get('/:uName', function(req, res, next) {
-  res.render('chatroom', {title: 'Welcome to Chat Room', userName: req.params.uName});
-  console.log(req.params.uName)
-  obj.io.emit("NewUserEntered", req.params.uName);
+  db.Users.find({userName:req.params.uName}, function (err, docs) {
+    if (!docs.length){
+      console.log('No such User exists: ',req.params.uName);
+      next(new Error("No such User exists!"));
+    }else{                
+      res.render('chatroom', {title: 'Welcome to Chat Room', userName: req.params.uName});
+      console.log(req.params.uName)
+      obj.io.emit("NewUserEntered", req.params.uName);
+    }
+  });
+  
 });
 
-router.post('/img/upload', (req, res) => {
-  var tmp_path = req.body.file.path;
-
-  /** The original name of the uploaded file
-      stored in the variable "originalname". **/
-  var target_path = 'uploads/' + req.body.file.originalname;
-
-  /** A better way to copy the uploaded file. **/
-  var src = fs.createReadStream(tmp_path);
-  var dest = fs.createWriteStream(target_path);
-  src.pipe(dest);
-  src.on('end', function() { res.send('complete'); });
-  src.on('error', function(err) { res.send('error'); });
+router.post('/img/upload', upload.single("msgfile") , async (req, res) => {
+  try {
+    const newChatMsg = new db.Chats({
+      name: req.body.userName,
+      chat: req.body.Msg,
+      chatImage: req.file.path
+    });
+    await newChatMsg.save();
+    //Emit the event
+    obj.io.emit("imgChat", newChatMsg)
+  } catch (error) {
+      res.sendStatus(500)
+      console.error(error)
+  }
 });
 
 // save a new chat message in database

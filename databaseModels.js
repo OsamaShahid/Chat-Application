@@ -8,7 +8,8 @@ mongoose.Promise = Promise
 var Schema = mongoose.Schema;
 var ChatsSchema = new Schema({
   name: {type: String, ref:'Users'},
-  chat: String
+  chat: String,
+  chatImage: {type: String}
 });
 // Model for chats
 var Chats = mongoose.model("Chats", ChatsSchema)
