@@ -66,6 +66,8 @@ img{ max-width:100%;}
 }
 .incoming_msg {
   margin-bottom: 5px;
+  width: 100%;
+  float: left;
 }
 .received_msg {
   display: inline-block;
@@ -100,13 +102,24 @@ body {
 }
  .sent_msg p {
   background: darkgreen none repeat scroll 0 0;
-  border-radius: 3px;
-  font-size: 14px;
-  margin: 0; color:#fff;
-  padding: 5px 10px 5px 12px;
-  width:100%;
+    border-radius: 3px;
+    font-size: 14px;
+    margin: 0;
+    color: #fff;
+    padding: 5px 10px 5px 12px;
+    width: fit-content;
+    float: right;
+    text-align: justify;
+    height: auto;
 }
-.outgoing_msg{ overflow:hidden; margin:26px 0 26px;}
+.outgoing_msg{ width: 500px;
+  overflow: -webkit-paged-y;
+  margin: 26px 0 26px;
+  float: right;}
+  img:hover {
+    opacity: 0.7;
+  }
+  
 .sent_msg {
   float: right;
   width: fit-content;
@@ -119,6 +132,12 @@ body {
   font-size: 15px;
   min-height: 48px;
   width: 100%;
+}
+
+.msg-img {
+  max-width: 490px;
+  margin-top: 4px;
+  float: right;
 }
 
 .type_msg {border-top: 1px solid #c4c4c4;position: relative;color:darkgreen;}

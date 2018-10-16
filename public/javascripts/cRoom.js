@@ -18,7 +18,7 @@ var socket = io()
         var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
         var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
         var dateTime = date+' '+time;
-        if(chatObj.chatImage === "")
+        if(chatObj.chatImage == "")
         {
             if(chatObj.name === $('#thisName').val())
             {
@@ -40,7 +40,7 @@ var socket = io()
         else {
             if(chatObj.name === $('#thisName').val())
             {
-                var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><img src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img><span class="time_date">'+ dateTime +'</span> </div></div>';
+                var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><img class="msg-img" onclick="enlargeImage(this);" style="border-radius: 5px;cursor: pointer;transition: 0.3s;" src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img><span class="time_date">'+ dateTime +'</span> </div></div>';
                 $('.msg_history').append(newSentMsg);
             }
             else {
@@ -49,7 +49,7 @@ var socket = io()
                   '<div class="received_msg">' +
                     '<div class="received_withd_msg">' +
                       '<p style="">' + chatObj.chat + '</p>' +
-                      '<img src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img>' +
+                      '<img class="msg-img" style="border-radius: 5px;cursor: pointer;transition: 0.3s;" onclick="enlargeImage(this);" src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img>' +
                       '<span class="time_date">' + dateTime + ' | ' + chatObj.name + '</span></div>' +
                   '</div>' +
                 '</div>';
@@ -62,6 +62,8 @@ var socket = io()
     {
         chatsList.forEach(addChat)
     }
+
+    
 
     socket.on('NewUserEntered', function(newUser){
         if($('#thisName').val() != newUser)
@@ -79,16 +81,16 @@ var socket = io()
         var dateTime = date+' '+time
         if(chatObj.name === $('#thisName').val())
         {
-            var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><img src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img><span class="time_date">'+ dateTime +'</span> </div></div>';
+            var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chat +'</p><img class="msg-img" style="border-radius: 5px;cursor: pointer;transition: 0.3s;" onclick="enlargeImage(this);" src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img><span class="time_date">'+ dateTime +'</span> </div></div>';
             $('.msg_history').append(newSentMsg);
         }
         else {
             var newRecvMsg = '<div class="incoming_msg">' +
-              '<div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.name +'" style="color:darkgreen"> </div>' +
+              '<div class="incoming_msg_img"> <img class="msg-img" src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.name +'" style="color:darkgreen"> </div>' +
               '<div class="received_msg">' +
                 '<div class="received_withd_msg">' +
                   '<p style="">' + chatObj.chat + '</p>' +
-                  '<img src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img>' +
+                  '<img style="border-radius: 5px;cursor: pointer;transition: 0.3s;" onclick="enlargeImage(this);" src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img>' +
                   '<span class="time_date">' + dateTime + ' | ' + chatObj.name + '</span></div>' +
               '</div>' +
             '</div>';
@@ -126,6 +128,13 @@ $('input[type="file"]').on('change', function() {
     var val = $(this).val();
     $(this).siblings('span').text(val);
 });
+
+function enlargeImage(current)
+{
+    $('.enlargeImageModalSource').attr('src', $(current).attr('src'));
+        $('#enlargeImageModal').modal('show');
+}
+
 
 $(function() 
 {
