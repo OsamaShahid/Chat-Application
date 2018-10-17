@@ -8,9 +8,28 @@ var socket = io()
     }
 
     function getChats() {
-        $.get("http://localhost:4747/chatroom/send/AllChats", function (chats, status) {
-            printChats(chats);
+        $.get("http://localhost:4747/chatroom/send/AllChats", function (res, status) {
+            printChats(res.chatsToSend);
+            ShowAllUsers(res.usersToSend);
         });
+    }
+
+    function ShowAllUsers(chatUsers) {
+        chatUsers.forEach(addUser);
+    }
+
+    function addUser(userObj) {
+        var addUser =   '<div class="chat_list">' +
+                            '<div class="chat_people">' +
+                            '<div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt=""> </div>' +
+                            '<div class="chat_ib">' +
+                                '<h5>'+ userObj.userName + '<span class="chat_date"></span></h5>' +
+                                '<p></p>' +
+                            '</div>' +
+                            '</div>' +
+                        '</div>';
+
+        $('.inbox_chat').append(addUser);
     }
 
     function addChat(chatObj) {

@@ -67,11 +67,34 @@ router.post("/putChats", async (req, res, next) => {
 })
 
 // Get chat messages from detabase and return to client
-router.get("/send/AllChats", function(req,res,next) {
-  db.Chats.find({}, (error, chats) => {
-      res.send(chats)
-  })
-  
+router.get("/send/AllChats", async function(req,res,next) {
+  var allChats;
+  var allUsers;
+  await db.Chats.find({}, (error, chats) => {
+      if(!error)
+      {
+        allChats = chats;
+      }
+      else {
+        next(new Error("No such User exists!"));
+        return;
+      }
+  });
+
+  await db.Users.find({}, (error, users) => {
+    if(!error)
+    {
+      allUsers = users;
+    }
+    else {
+      next(new Error("No such User exists!"));
+      return;
+    }
+  });
+  res.send({
+    usersToSend: allUsers,
+    chatsToSend: allChats
+  });
 })
 
 

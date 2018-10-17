@@ -7,7 +7,6 @@ var bodyParser = require("body-parser");
 var hbs = require('express-handlebars');
 var indexRouter = require('./routes/index');
 var chatroomRouter = require('./routes/chatroom');
-var tempRouter = require('./routes/temp');
 
 var app = express();
 

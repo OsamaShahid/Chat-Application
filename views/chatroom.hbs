@@ -7,7 +7,21 @@
     <h1 class="text-center" style="color:aliceblue">MongOOseChat</h1>
     <div class="messaging" >
       <div class="inbox_msg" >
-        <div class="mesgs" id="dropContainer" >
+        <div class="inbox_people">
+          <div class="headind_srch">
+            <div class="recent_heading">
+              <h4>Recent</h4>
+            </div>
+            <div class="srch_bar">
+              <div class="stylish-input-group">
+                <input type="text" class="search-bar"  placeholder="Search" > 
+              </div>
+            </div>
+          </div>
+          <div class="inbox_chat">
+          </div>
+        </div>
+        <div class="mesgs" id="dropContainer">
           <div class="msg_history">
           </div>
             <div class="type_msg">
@@ -25,6 +39,26 @@
                     </form>
                 </div>
             </div>
+        </div>
+        <div class="ind_mesgs" style="display:none;width:60%" >
+            <div class="ind_msg_history">
+            </div>
+            <div class="ind_type_msg">
+                <div class="ind_input_msg_write">
+                    <form class="uploadImage" enctype="multipart/form-data" id="msg_form" action="/chatroom/img/upload" method="POST">
+                        <input type="hidden" name="userName" value="{{userName}}">
+                        <p class="lead emoji-picker-container">
+                            <input class="ind_write_msg" type="text" name="Msg" placeholder="type your message here" data-emojiable="true">
+                        </p>
+                        <div class="upload-btn-wrapper">
+                            <button class="ind_upload_btn"><i class="fa fa-camera" aria-hidden="true"></i></button>
+                            <input type="file" name="msgfile" id="ind_img_input" accept='image/*' />
+                        </div>
+                        <button class="ind_msg_send_btn" type="submit"><i class="fa fa-paper-plane-o" aria-hidden="true"> </i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
         </div>
       </div> 
     </div>
