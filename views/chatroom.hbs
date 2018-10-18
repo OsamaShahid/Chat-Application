@@ -2,7 +2,6 @@
 <link href="/stylesheets/chatroom.css" rel="stylesheet">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet"/>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
-<script src="/javascripts/cRoom.js"></script>
 <div class="container">
     <h1 class="text-center" style="color:aliceblue">MongOOseChat</h1>
     <div class="messaging" >
@@ -13,9 +12,6 @@
               <h4>Recent</h4>
             </div>
             <div class="srch_bar">
-              <div class="stylish-input-group">
-                <input type="text" class="search-bar"  placeholder="Search" > 
-              </div>
             </div>
           </div>
           <div class="inbox_chat">
@@ -24,12 +20,12 @@
         <div class="mesgs" id="dropContainer">
           <div class="msg_history">
           </div>
-            <div class="type_msg">
+            <div class="type_msg" id="chatroom_type_msg">
                 <div class="input_msg_write">
                     <form class="uploadImage" enctype="multipart/form-data" id="msg_form" action="/chatroom/img/upload" method="POST">
                         <input type="hidden" name="userName" value="{{userName}}">
                         <p class="lead emoji-picker-container">
-                            <input class="write_msg" type="text" name="Msg" placeholder="type your message here" data-emojiable="true">
+                            <input class="write_msg" type="text" id="chatroom_type_area" name="Msg" placeholder="type your message here" data-emojiable="true">
                         </p>
                         <div class="upload-btn-wrapper">
                             <button class="upload_btn"><i class="fa fa-camera" aria-hidden="true"></i></button>
@@ -39,22 +35,18 @@
                     </form>
                 </div>
             </div>
-        </div>
-        <div class="ind_mesgs" style="display:none;width:60%" >
-            <div class="ind_msg_history">
-            </div>
-            <div class="ind_type_msg">
-                <div class="ind_input_msg_write">
-                    <form class="uploadImage" enctype="multipart/form-data" id="msg_form" action="/chatroom/img/upload" method="POST">
+            <div class="type_msg" id="ind_type_msg" style="display:none">
+                <div class="input_msg_write">
+                    <form class="uploadImage" enctype="multipart/form-data" id="ind_msg_form" action="" method="POST">
                         <input type="hidden" name="userName" value="{{userName}}">
                         <p class="lead emoji-picker-container">
-                            <input class="ind_write_msg" type="text" name="Msg" placeholder="type your message here" data-emojiable="true">
+                            <input class="write_msg" type="text" id="ind_type_area" name="Msg" placeholder="type your message here" data-emojiable="true">
                         </p>
                         <div class="upload-btn-wrapper">
-                            <button class="ind_upload_btn"><i class="fa fa-camera" aria-hidden="true"></i></button>
+                            <button class="upload_btn"><i class="fa fa-camera" aria-hidden="true"></i></button>
                             <input type="file" name="msgfile" id="ind_img_input" accept='image/*' />
                         </div>
-                        <button class="ind_msg_send_btn" type="submit"><i class="fa fa-paper-plane-o" aria-hidden="true"> </i></button>
+                        <button class="msg_send_btn" type="submit"><i class="fa fa-paper-plane-o" aria-hidden="true"> </i></button>
                     </form>
                 </div>
             </div>
@@ -63,17 +55,91 @@
       </div> 
     </div>
 </div>
-
+<!-- The actual snackbar -->
+<div id="snackbar" ></div>
+<div class="modal fade" id="enlargeImageModal" tabindex="-1" role="dialog" aria-labelledby="enlargeImageModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+        </div>
+        <div class="modal-body">
+          <img src="" class="enlargeImageModalSource" style="width: 100%;">
+        </div>
+      </div>
+    </div>
+</div>
+<input type="hidden" id="thisName" value="{{userName}}">
+<script src="/javascripts/cRoom.js"></script>
 <script>
     dropContainer.ondragover = dropContainer.ondragenter = function(evt) {
         evt.preventDefault();
       };
 
     dropContainer.ondrop = function(evt) {
-        // pretty simple -- but not for IE :(
-        img_input.files = evt.dataTransfer.files;
+        if(document.getElementById('ind_type_msg').style.display === 'inline')
+        {
+            ind_img_input.files = evt.dataTransfer.files;
+        }
+        if(document.getElementById('type_msg').style.display === 'inline')
+        {
+            img_input.files = evt.dataTransfer.files;
+        }
         evt.preventDefault();
     };
+
+    $(function() {
+        var form = $('#ind_msg_form');
+        $(form).submit(function(event) {
+            event.preventDefault();
+            if(($('#ind_img_input').val()))
+            {
+                var msgform = $('#ind_msg_form')[0];
+                formData = new FormData(msgform);
+                $.ajax({
+                    url: '',
+                    method: 'post',
+                    enctype: 'multipart/form-data',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response){
+                        var textobj = $('.write_msg');
+                        textobj.empty();     
+                    }
+                });
+            }
+            else {
+                broadCastIndMsg();
+            }
+        });
+    });
+
+    function broadCastIndMsg() {
+
+        if( $('#ind_type_area').val() != '')
+        {
+            var curDate = new Date();
+            var chatMessage = {
+                SenderName: $("#thisName").val(),
+                ReceiverName: currentActiveChatUser,
+                chat: $("#ind_type_area").val(), 
+                chatImage: "", 
+                currentDateTime: curDate.toISOString()
+            }
+            postIndChat(chatMessage)
+            var textobj = $('#ind_type_area');
+            textobj.empty();
+        }
+        else{
+            alert('cannot send empty message!!!!');
+        }
+    }
+
+    function postIndChat(chat) {
+        $.post("/chatroom/putIndChats", chat)
+    }
+
     $(function() {
     // Get the form.
     var form = $('#msg_form');
@@ -95,7 +161,8 @@
                 processData: false,
                 contentType: false,
                 success: function(response){
-                    console.log(response);     
+                    var textobj = $('.write_msg');
+                    textobj.empty();     
                 }
             });
         }
@@ -122,21 +189,6 @@
         }
     }
 </script>
-<!-- The actual snackbar -->
-<div id="snackbar" ></div>
-<div class="modal fade" id="enlargeImageModal" tabindex="-1" role="dialog" aria-labelledby="enlargeImageModal" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-        </div>
-        <div class="modal-body">
-          <img src="" class="enlargeImageModalSource" style="width: 100%;">
-        </div>
-      </div>
-    </div>
-</div>
-<input type="hidden" id="thisName" value="{{userName}}">
 <script src="/javascripts/config.js"></script>
 <script src="/javascripts/util.js"></script>
 <script src="/javascripts/jquery.emojiarea.js"></script>

@@ -11,6 +11,28 @@ var ChatsSchema = new Schema({
   chat: String,
   chatImage: {type: String}
 });
+
+// schema for each started conversation
+var StartedConversationsSchema = new Schema({
+  id: {type: mongoose.Schema.Types.ObjectId},
+  leftUser: {type: String, ref:'Users'},
+  rightUser: {type: String, ref:'Users'},
+});
+
+// schema for conversation messages
+var individualChatsSchema = new Schema({
+  conversationId: {type: mongoose.Schema.Types.ObjectId, ref: 'StartedConversations'},
+  senderName: {type: String},
+  receiverName: {type: String},
+  TimeOfsending: {type: Date},
+  chatImage: {type: String},
+  chatMessage: {type: String} 
+});
+
+var individualChats = mongoose.model('individualChats', individualChatsSchema);
+
+var StartedConversations = mongoose.model('StartedConversations', StartedConversationsSchema);
+
 // Model for chats
 var Chats = mongoose.model("Chats", ChatsSchema)
 
@@ -23,3 +45,6 @@ mongoose.connect(conString, { useNewUrlParser: true },(err) => {
 
 module.exports.Chats = Chats;
 module.exports.Users = Users;
+module.exports.StartedConversations = StartedConversations;
+module.exports.individualChats = individualChats;
+module.exports.mongoose = mongoose;

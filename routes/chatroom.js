@@ -66,6 +66,127 @@ router.post("/putChats", async (req, res, next) => {
   }
 })
 
+router.post('/putIndChats', async (req, res, next) => {
+  await db.StartedConversations.find({leftUser:req.body.SenderName, rightUser:req.body.ReceiverName}, async function(err, conversation) {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    if(conversation.length) {
+      try {
+        var newindividualChatMsg = new db.individualChats({
+          conversationId: conversation.id,
+          senderName: req.body.SenderName,
+          receiverName: req.body.ReceiverName,
+          TimeOfsending: req.body.currentDateTime,
+          chatImage: req.body.chatImage,
+          chatMessage: req.body.chat
+        });
+        await newindividualChatMsg.save();
+        res.sendStatus(200)
+        //Emit the event
+        obj.io.emit("indChat", newindividualChatMsg)
+        return;
+      }
+      catch (error) {
+        console.log(error);
+        res.send(error);
+        return
+      }
+    }
+  });
+
+  await db.StartedConversations.find({leftUser:req.body.ReceiverName, rightUser:req.body.SenderName},async function(err, conversation) {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    if(conversation.length) {
+      try {
+        var newindividualChatMsg = new db.individualChats({
+          conversationId: conversation.id,
+          senderName: req.body.SenderName,
+          receiverName: req.body.ReceiverName,
+          TimeOfsending: req.body.currentDateTime,
+          chatImage: req.body.chatImage,
+          chatMessage: req.body.chat
+        });
+        await newindividualChatMsg.save();
+        res.sendStatus(200)
+        //Emit the event
+        obj.io.emit("indChat", newindividualChatMsg)
+        return;
+      }
+      catch (error) {
+        console.log(error);
+        res.send(error);
+        return
+      }
+    }
+  });
+
+  try {
+    var newStartedCnversation = new db.StartedConversations({
+      id: new db.mongoose.Types.ObjectId(),
+      leftUser: req.body.ReceiverName,
+      rightUser: req.body.SenderName
+    });
+    await newStartedCnversation.save();
+    var newindividualChatMsg = new db.individualChats({
+      conversationId: newStartedCnversation.id,
+      senderName: req.body.SenderName,
+      receiverName: req.body.ReceiverName,
+      TimeOfsending: req.body.currentDateTime,
+      chatImage: req.body.chatImage,
+      chatMessage: req.body.chat
+    });
+    await newindividualChatMsg.save();
+    res.sendStatus(200)
+    //Emit the event
+    obj.io.emit("indChat", newindividualChatMsg)
+    return;
+
+  }
+  catch(error) {
+    console.log(error);
+    res.send(error);
+    return;
+  }
+  
+});
+
+router.get("/getallchats/ind/:SenderName/:ReceiverName", async function(req, res, next) {
+  var check = false;
+  await db.StartedConversations.find({leftUser:req.params.SenderName, rightUser:req.params.ReceiverName},function(err, conversation) {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    if(conversation.length) {
+      check = true;
+    }
+  });
+  if(!check)
+  {
+    await db.StartedConversations.find({leftUser:req.params.ReceiverName, rightUser:req.params.SenderName},function(err, conversation) {
+      if(err) {
+        res.send(err);
+        return;
+      }
+      if(conversation.length) {
+        check = true;
+      }
+    });
+  }
+  if(!check)
+  {
+    res.send({check: false});
+    return;
+  }
+  else {
+  }
+});
+
 // Get chat messages from detabase and return to client
 router.get("/send/AllChats", async function(req,res,next) {
   var allChats;

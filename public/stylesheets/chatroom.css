@@ -43,6 +43,22 @@ img{ max-width:100%;}
   color: #707070;
   font-size: 18px;
 }
+
+a {
+  text-decoration: none;
+  display: inline-block;
+  padding: 8px 16px;
+}
+
+a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.previous {
+  background-color: #f1f1f1;
+  color: black;
+}
 .srch_bar .input-group-addon { margin: 0 0 0 -27px;}
 
 .chat_ib h5{ font-size:15px; color:#464646; margin:0 0 8px 0;}
@@ -100,6 +116,7 @@ img{ max-width:100%;}
   margin: 8px 0 0;
 }
 .received_withd_msg { width: fit-content; margin-top: 5px;}
+
 .mesgs {
   float: left;
   padding: 30px 15px 0 25px;
@@ -149,6 +166,7 @@ body {
 }
 
 .type_msg {border-top: 1px solid #c4c4c4;position: relative;color:darkgreen;}
+.ind_type_msg {border-top: 1px solid #c4c4c4;position: relative;color:darkgreen;}
 .msg_send_btn {
   background: darkgreen none repeat scroll 0 0;
   border: medium none;
@@ -164,7 +182,13 @@ body {
   float: right;
 }
 .messaging { padding: 0 0 50px 0;}
+
 .msg_history {
+  height: 516px;
+  overflow-y: auto;
+}
+
+.ind_msg_history {
   height: 516px;
   overflow-y: auto;
 }

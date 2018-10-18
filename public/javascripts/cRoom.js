@@ -2,6 +2,60 @@ var socket = io()
     socket.connect('http://192.168.34.54:4747/');
     socket.on("chat", addChat)
 
+
+    function addIndChat(chatObj) {
+        if(document.getElementById('ind_type_msg').style.display === 'none')
+        {
+            return;
+        }
+        if(chatObj.chatImage == "")
+        {
+            if(chatObj.senderName === $('#thisName').val())
+            {
+                var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chatMessage +'</p><span class="time_date">'+ chatObj.TimeOfsending +'</span> </div></div>';
+                $('.msg_history').append(newSentMsg);
+            }
+            else if (chatObj.receiverName === $('#thisName').val()) {
+                var newRecvMsg = '<div class="incoming_msg">' +
+                '<div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.senderName +'" style="color:darkgreen"> </div>' +
+                '<div class="received_msg">' +
+                    '<div class="received_withd_msg">' +
+                    '<p style="">' + chatObj.chatMessage + '</p>' +
+                    '<span class="time_date">' + chatObj.TimeOfsending + ' | ' + chatObj.senderName + '</span></div>' +
+                '</div>' +
+                '</div>';
+                $('.msg_history').append(newRecvMsg);
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            if(chatObj.senderName === $('#thisName').val())
+            {
+                var newSentMsg = '<div class="outgoing_msg"><div class="sent_msg"><p>'+ chatObj.chatMessage +'</p><img class="msg-img" onclick="enlargeImage(this);" style="border-radius: 5px;cursor: pointer;transition: 0.3s;" src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img><span class="time_date">'+ chatObj.TimeOfsending +'</span> </div></div>';
+                $('.msg_history').append(newSentMsg);
+            }
+            else if (chatObj.receiverName === $('#thisName').val()) {
+                var newRecvMsg = '<div class="incoming_msg">' +
+                  '<div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="'+ chatObj.senderName +'" style="color:darkgreen"> </div>' +
+                  '<div class="received_msg">' +
+                    '<div class="received_withd_msg">' +
+                      '<p style="">' + chatObj.chatMessage + '</p>' +
+                      '<img class="msg-img" style="border-radius: 5px;cursor: pointer;transition: 0.3s;" onclick="enlargeImage(this);" src=' + chatObj.chatImage.substring(6,chatObj.chatImage.length) + '></img>' +
+                      '<span class="time_date">' + chatObj.TimeOfsending + ' | ' + chatObj.senderName + '</span></div>' +
+                  '</div>' +
+                '</div>';
+                $('.msg_history').append(newRecvMsg);
+            }
+
+            else {
+                return;
+            }
+        }
+    }
+
+    socket.on("indChat", addIndChat)
     
     function postChat(chat) {
         $.post("/chatroom/putChats", chat)
@@ -19,7 +73,8 @@ var socket = io()
     }
 
     function addUser(userObj) {
-        var addUser =   '<div class="chat_list">' +
+        if(userObj.userName === $('#thisName').val()) {return;}
+        var addUser =   '<div class="chat_list" id = "'+ userObj.userName +'" onclick="changeView(this);">' +
                             '<div class="chat_people">' +
                             '<div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt=""> </div>' +
                             '<div class="chat_ib">' +
@@ -30,6 +85,44 @@ var socket = io()
                         '</div>';
 
         $('.inbox_chat').append(addUser);
+    }
+
+    function changeView(cur) {
+        $('.srch_bar').empty();
+        var preBtn = '<a class="previous" onclick="backToChatRoom();" >&laquo; Chatroom</a>'
+        $('.srch_bar').append(preBtn);
+        $( ".chat_list" ).toggleClass( 'active_chat', false );
+        document.getElementById('chatroom_type_msg').style.display = 'none';
+        document.getElementById('ind_type_msg').style.display = 'inline';
+        $( cur ).toggleClass( "active_chat");
+        $('.msg_history').empty();
+        console.log(cur.id);
+        currentActiveChatUser = cur.id;
+        $.get("http://192.168.34.54:4747/chatroom/getallchats/ind/" + $('thisName').val() + "/" + currentActiveChatUser, function(res,status){
+            if(!res.check &&  document.getElementById('ind_type_msg').style.display === 'inline')
+            {
+                alert('Start A new Conversation');
+            }
+            else {
+                if(document.getElementById('ind_type_msg').style.display === 'inline')
+                {
+                    
+                }
+            }
+        });
+    }
+
+    function backToChatRoom() {
+        currentActiveChatUser = null;
+        $('.srch_bar').empty();
+        $( ".chat_list" ).toggleClass( 'active_chat', false );
+        $('.msg_history').empty();
+        document.getElementById('ind_type_msg').style.display = 'none';
+        document.getElementById('chatroom_type_msg').style.display = 'inline';
+        $.get("http://localhost:4747/chatroom/send/AllChats", function (res, status) {
+            console.log(res.chatsToSend);
+            printChats(res.chatsToSend);
+        });
     }
 
     function addChat(chatObj) {
@@ -82,6 +175,7 @@ var socket = io()
         chatsList.forEach(addChat)
     }
 
+    var currentActiveChatUser = null;
     
 
     socket.on('NewUserEntered', function(newUser){
