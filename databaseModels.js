@@ -26,7 +26,7 @@ var individualChatsSchema = new Schema({
   receiverName: {type: String},
   TimeOfsending: {type: Date},
   chatImage: {type: String},
-  chatMessage: {type: String} 
+  chatMessage: {type: String}
 });
 
 var individualChats = mongoose.model('individualChats', individualChatsSchema);

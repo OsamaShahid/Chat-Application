@@ -19,6 +19,30 @@ const upload = multer({
   storage: storage
 });
 
+router.post('/get/particepents',async (req,res,next)=> {
+  await db.Users.find({}, (error, result) => {
+    try{
+      if(!error)
+      {
+        res.send({
+          AllUsers: result,
+          check: false
+        });
+        return;
+      }
+      else {
+        res.send({check: true});
+        return;
+      }
+    }
+    catch (error)
+    {
+      console.log(error);
+      res.send({check: true});
+      return;
+    }
+  });
+})
 
 
 /* GET users listing. */
@@ -36,16 +60,76 @@ router.get('/:uName', function(req, res, next) {
   
 });
 
+router.post('/login', async (req,res, next) => {
+
+  try{
+    await db.Users.find({userName: req.body.username}, (error, loggedUser) => {
+      if(error) {
+        res.send(error);
+        return;
+      }
+      if(loggedUser.length)
+      {
+        res.send(loggedUser);
+        console.log(loggedUser);
+        obj.io.emit("NewUserJoined", loggedUser);
+        return
+      }
+      else {
+        res.send({check: true});
+        return
+      }
+    });
+  }
+  catch(error) {
+    console.log(error);
+    res.send(error);
+    return;
+  }
+
+})
+
+router.post('/validateSession', async (req,res, next)=> {
+  try{
+    console.log(req.body);
+    await db.Users.find({userName: req.body.Username}, (error, loggedUser) => {
+      if(error) {
+        res.send({
+          check: true,
+          Error: error
+        });
+        return;
+      }
+      if(loggedUser.length)
+      {
+        res.send(loggedUser);
+        console.log(loggedUser);
+        obj.io.emit("NewUserJoined", loggedUser);
+        return
+      }
+      else {
+        res.send({check: true});
+        return
+      }
+    });
+  }
+  catch(error) {
+    console.log(error);
+    res.send(error);
+    return;
+  }
+});
+
 router.post('/img/upload', upload.single("msgfile") , async (req, res) => {
   try {
     const newChatMsg = new db.Chats({
       name: req.body.userName,
-      chat: req.body.Msg,
-      chatImage: req.file.path
+      chat: req.body.chatMsg,
+      chatImage: "http://192.168.34.54:4747/uploads/" + req.file.filename
     });
     await newChatMsg.save();
     //Emit the event
-    obj.io.emit("imgChat", newChatMsg)
+    obj.io.emit("onBroadCastMsg", newChatMsg)
   } catch (error) {
       res.sendStatus(500)
       console.error(error)
@@ -58,8 +142,7 @@ router.post("/putChats", async (req, res, next) => {
       var chat = new db.Chats(req.body)
       await chat.save()
       res.sendStatus(200)
-      //Emit the event
-      obj.io.emit("chat", req.body)
+      obj.io.emit("onBroadCastMsg", chat)
   } catch (error) {
       res.sendStatus(500)
       console.error(error)
@@ -74,8 +157,9 @@ router.post('/putIndChats', async (req, res, next) => {
     }
     if(conversation.length) {
       try {
+
         var newindividualChatMsg = new db.individualChats({
-          conversationId: conversation.id,
+          conversationId: conversation[0]._id,
           senderName: req.body.SenderName,
           receiverName: req.body.ReceiverName,
           TimeOfsending: req.body.currentDateTime,
@@ -94,126 +178,152 @@ router.post('/putIndChats', async (req, res, next) => {
         return
       }
     }
-  });
-
-  await db.StartedConversations.find({leftUser:req.body.ReceiverName, rightUser:req.body.SenderName},async function(err, conversation) {
-    if(err) {
-      res.send(err);
-      return;
+    else {
+      await db.StartedConversations.find({leftUser:req.body.ReceiverName, rightUser:req.body.SenderName},async function(err, resultChat) {
+        if(err) {
+          res.send(err);
+          return;
+        }
+        if(resultChat.length) {
+          try {
+            var newindividualChatMsg = new db.individualChats({
+              conversationId: resultChat[0]._id,
+              senderName: req.body.SenderName,
+              receiverName: req.body.ReceiverName,
+              TimeOfsending: req.body.currentDateTime,
+              chatImage: req.body.chatImage,
+              chatMessage: req.body.chat
+            });
+            await newindividualChatMsg.save();
+            res.sendStatus(200)
+            //Emit the event
+            obj.io.emit("indChat", newindividualChatMsg)
+            return;
+          }
+          catch (error) {
+            console.log(error);
+            res.send(error);
+            return
+          }
+        }
+        else {
+          try {
+            var newStartedCnversation = new db.StartedConversations({
+              id: new db.mongoose.Types.ObjectId(),
+              leftUser: req.body.ReceiverName,
+              rightUser: req.body.SenderName
+            });
+            await newStartedCnversation.save();
+            var newindividualChatMsg = new db.individualChats({
+              conversationId: newStartedCnversation._id,
+              senderName: req.body.SenderName,
+              receiverName: req.body.ReceiverName,
+              TimeOfsending: req.body.currentDateTime,
+              chatImage: req.body.chatImage,
+              chatMessage: req.body.chat
+            });
+            await newindividualChatMsg.save();
+            res.sendStatus(200)
+            //Emit the event
+            obj.io.emit("indChat", newindividualChatMsg)
+            return;
+        
+          }
+          catch(error) {
+            console.log(error);
+            res.send(error);
+            return;
+          }
+        }
+      });
     }
-    if(conversation.length) {
-      try {
-        var newindividualChatMsg = new db.individualChats({
-          conversationId: conversation.id,
-          senderName: req.body.SenderName,
-          receiverName: req.body.ReceiverName,
-          TimeOfsending: req.body.currentDateTime,
-          chatImage: req.body.chatImage,
-          chatMessage: req.body.chat
-        });
-        await newindividualChatMsg.save();
-        res.sendStatus(200)
-        //Emit the event
-        obj.io.emit("indChat", newindividualChatMsg)
-        return;
-      }
-      catch (error) {
-        console.log(error);
-        res.send(error);
-        return
-      }
-    }
   });
-
-  try {
-    var newStartedCnversation = new db.StartedConversations({
-      id: new db.mongoose.Types.ObjectId(),
-      leftUser: req.body.ReceiverName,
-      rightUser: req.body.SenderName
-    });
-    await newStartedCnversation.save();
-    var newindividualChatMsg = new db.individualChats({
-      conversationId: newStartedCnversation.id,
-      senderName: req.body.SenderName,
-      receiverName: req.body.ReceiverName,
-      TimeOfsending: req.body.currentDateTime,
-      chatImage: req.body.chatImage,
-      chatMessage: req.body.chat
-    });
-    await newindividualChatMsg.save();
-    res.sendStatus(200)
-    //Emit the event
-    obj.io.emit("indChat", newindividualChatMsg)
-    return;
-
-  }
-  catch(error) {
-    console.log(error);
-    res.send(error);
-    return;
-  }
-  
 });
 
-router.get("/getallchats/ind/:SenderName/:ReceiverName", async function(req, res, next) {
+router.post("/getallindchat", async function(req, res, next) {
   var check = false;
-  await db.StartedConversations.find({leftUser:req.params.SenderName, rightUser:req.params.ReceiverName},function(err, conversation) {
-    if(err) {
-      res.send(err);
-      return;
-    }
-    if(conversation.length) {
-      check = true;
-    }
-  });
+  console.log(req.body);
   if(!check)
   {
-    await db.StartedConversations.find({leftUser:req.params.ReceiverName, rightUser:req.params.SenderName},function(err, conversation) {
+    await db.StartedConversations.find({leftUser:req.body.ReceiverName, rightUser:req.body.SenderName}, async function(err, conversation) {
       if(err) {
         res.send(err);
         return;
       }
       if(conversation.length) {
         check = true;
+        await db.individualChats.find({conversationId: conversation[0]._id}, function(err, converstionList){
+          if(err) {
+            res.send(err);
+            return;
+          }
+          if(converstionList.length)
+          {
+            console.log(converstionList);
+            res.send({
+              check: true,
+              chatList: converstionList
+            });
+            return;
+          }
+        })
+      }
+      else {
+        res.send({check: false});
       }
     });
   }
+});
+
+router.post("/getallindchatR", async function(req, res, next) {
+  var check = false;
+  console.log(req.body);
   if(!check)
   {
-    res.send({check: false});
-    return;
-  }
-  else {
+    await db.StartedConversations.find({leftUser:req.body.senderName, rightUser:req.body.receiverName}, async function(err, conversation) {
+      if(err) {
+        res.send(err);
+        return;
+      }
+      if(conversation.length) {
+        check = true;
+        await db.individualChats.find({conversationId: conversation[0]._id}, function(err, converstionList){
+          if(err) {
+            res.send(err);
+            return;
+          }
+          if(converstionList.length)
+          {
+            console.log(converstionList);
+            res.send({
+              check: true,
+              chatList: converstionList
+            });
+            return;
+          }
+        })
+      }
+      else {
+        res.send({check: false});
+      }
+    });
   }
 });
 
 // Get chat messages from detabase and return to client
-router.get("/send/AllChats", async function(req,res,next) {
+router.post("/get/chats", async function(req,res,next) {
   var allChats;
-  var allUsers;
-  await db.Chats.find({}, (error, chats) => {
+  await db.Chats.find({}, async (error, chats) => {
       if(!error)
       {
         allChats = chats;
       }
       else {
-        next(new Error("No such User exists!"));
+        res.send({check: true});
         return;
       }
   });
-
-  await db.Users.find({}, (error, users) => {
-    if(!error)
-    {
-      allUsers = users;
-    }
-    else {
-      next(new Error("No such User exists!"));
-      return;
-    }
-  });
   res.send({
-    usersToSend: allUsers,
     chatsToSend: allChats
   });
 })
