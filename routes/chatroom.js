@@ -44,6 +44,53 @@ router.post('/get/particepents',async (req,res,next)=> {
   });
 })
 
+router.post('/myStartedConersations', async (req,res,next)=> {
+  await db.StartedConversations.find({}, (err,resultList)=>{
+    if(err) {
+      res.send({
+        check: false,
+        Error: err
+      });
+    }
+    else {
+      if(resultList.length)
+      {
+        var i;
+        var resultArray = [];
+        for(i=0;i<resultList.length;i++)
+        {
+          if(resultList[i].leftUser === req.body.username || resultList[i].rightUser === req.body.username) {
+            if(resultList[i].leftUser === req.body.username) {
+              obj = {
+                id: resultList[i]._id,
+                senderName: resultList[i].leftUser,
+                receiverName: resultList[i].rightUser,
+                unReadMsgCount: resultList[i].unreadMsgCountLeftUser,
+                lastMessageTime: resultList[i].date
+              };
+              resultArray.push(obj);
+            }
+            else {
+              obj = {
+                id: resultList[i]._id,
+                senderName: resultList[i].rightUser,
+                receiverName: resultList[i].leftUser,
+                unReadMsgCount: resultList[i].unreadMsgCountRightUser,
+                lastMessageTime: resultList[i].date
+              };
+              resultArray.push(obj);
+            }
+          }
+        }
+        res.send({
+          check: true,
+          conversations: resultArray
+        });
+      }
+    }
+    return;
+  });
+});
 
 /* GET users listing. */
 router.get('/:uName', function(req, res, next) {
@@ -136,6 +183,119 @@ router.post('/img/upload', upload.single("msgfile") , async (req, res) => {
   }
 });
 
+router.post('/indvidimg/upload', upload.single("msgfile"), async (req, res, next) => {
+  await db.StartedConversations.find({leftUser:req.body.SenderName, rightUser:req.body.ReceiverName}, async function(err, conversation) {
+    if(err) {
+      res.send(err);
+      return;
+    }
+    if(conversation.length) {
+      try {
+
+        var newindividualChatMsg = new db.individualChats({
+          conversationId: conversation[0]._id,
+          senderName: req.body.SenderName,
+          receiverName: req.body.ReceiverName,
+          TimeOfsending: req.body.currentDateTime,
+          chatImage: "http://192.168.34.54:4747/uploads/" + req.file.filename,
+          chatMessage: req.body.chat
+        });
+        await newindividualChatMsg.save();
+
+        conversation[0].date = req.body.currentDateTime;
+        conversation[0].lastMessage = req.body.chat;
+        conversation[0].unreadMsgCountRightUser += 1;
+        await conversation[0].save();
+
+        res.sendStatus(200)
+        //Emit the event
+        obj.io.emit("indChat", newindividualChatMsg)
+        return;
+      }
+      catch (error) {
+        console.log(error);
+        res.send(error);
+        return
+      }
+    }
+    else {
+      await db.StartedConversations.find({leftUser:req.body.ReceiverName, rightUser:req.body.SenderName},async function(err, resultChat) {
+        if(err) {
+          res.send(err);
+          return;
+        }
+        if(resultChat.length) {
+          try {
+            var newindividualChatMsg = new db.individualChats({
+              conversationId: resultChat[0]._id,
+              senderName: req.body.SenderName,
+              receiverName: req.body.ReceiverName,
+              TimeOfsending: req.body.currentDateTime,
+              chatImage: "http://192.168.34.54:4747/uploads/" + req.file.filename,
+              chatMessage: req.body.chat
+            });
+            await newindividualChatMsg.save();
+            
+            resultChat[0].date = req.body.currentDateTime;
+            resultChat[0].lastMessage = req.body.chat;
+            resultChat[0].unreadMsgCountLeftUser += 1;
+            await resultChat[0].save();
+
+            res.sendStatus(200)
+            //Emit the event
+            obj.io.emit("indChat", newindividualChatMsg)
+            return;
+          }
+          catch (error) {
+            console.log(error);
+            res.send(error);
+            return
+          }
+        }
+        else {
+          try {
+            var newStartedCnversation = new db.StartedConversations({
+              id: new db.mongoose.Types.ObjectId(),
+              leftUser: req.body.ReceiverName,
+              rightUser: req.body.SenderName,
+              date: new Date(),
+              lastMessage: "",
+              unreadMsgCountLeftUser: 0,
+              unreadMsgCountRightUser: 0
+            });
+            await newStartedCnversation.save();
+            var newindividualChatMsg = new db.individualChats({
+              conversationId: newStartedCnversation._id,
+              senderName: req.body.SenderName,
+              receiverName: req.body.ReceiverName,
+              TimeOfsending: req.body.currentDateTime,
+              chatImage: "http://192.168.34.54:4747/uploads/" + req.file.filename,
+              chatMessage: req.body.chat
+            });
+            await newindividualChatMsg.save();
+
+            newStartedCnversation.date = req.body.currentDateTime;
+            newStartedCnversation.lastMessage = req.body.chat;
+            newStartedCnversation.unreadMsgCountLeftUser += 1;
+            await newStartedCnversation.save();
+
+            res.sendStatus(200)
+            //Emit the event
+            obj.io.emit("indChat", newindividualChatMsg)
+            return;
+        
+          }
+          catch(error) {
+            console.log(error);
+            res.send(error);
+            return;
+          }
+        }
+      });
+    }
+  });
+});
+
 // save a new chat message in database
 router.post("/putChats", async (req, res, next) => {
   try {
@@ -168,6 +328,11 @@ router.post('/putIndChats', async (req, res, next) => {
         });
         await newindividualChatMsg.save();
         res.sendStatus(200)
+
+        conversation[0].date = req.body.currentDateTime;
+        conversation[0].lastMessage = req.body.chat;
+        conversation[0].unreadMsgCountRightUser += 1;
+        await conversation[0].save();
         //Emit the event
         obj.io.emit("indChat", newindividualChatMsg)
         return;
@@ -195,6 +360,11 @@ router.post('/putIndChats', async (req, res, next) => {
               chatMessage: req.body.chat
             });
             await newindividualChatMsg.save();
+
+            resultChat[0].date = req.body.currentDateTime;
+            resultChat[0].lastMessage = req.body.chat;
+            resultChat[0].unreadMsgCountLeftUser += 1;
+            await resultChat[0].save();
             res.sendStatus(200)
             //Emit the event
             obj.io.emit("indChat", newindividualChatMsg)
@@ -211,9 +381,14 @@ router.post('/putIndChats', async (req, res, next) => {
             var newStartedCnversation = new db.StartedConversations({
               id: new db.mongoose.Types.ObjectId(),
               leftUser: req.body.ReceiverName,
-              rightUser: req.body.SenderName
+              rightUser: req.body.SenderName,
+              date: new Date(),
+              lastMessage: "",
+              unreadMsgCountLeftUser: 0,
+              unreadMsgCountRightUser: 0
             });
             await newStartedCnversation.save();
+
             var newindividualChatMsg = new db.individualChats({
               conversationId: newStartedCnversation._id,
               senderName: req.body.SenderName,
@@ -223,6 +398,12 @@ router.post('/putIndChats', async (req, res, next) => {
               chatMessage: req.body.chat
             });
             await newindividualChatMsg.save();
+
+            newStartedCnversation.date = req.body.currentDateTime;
+            newStartedCnversation.lastMessage = req.body.chat;
+            newStartedCnversation.unreadMsgCountLeftUser += 1;
+            await newStartedCnversation.save();
+
             res.sendStatus(200)
             //Emit the event
             obj.io.emit("indChat", newindividualChatMsg)
@@ -252,6 +433,8 @@ router.post("/getallindchat", async function(req, res, next) {
       }
       if(conversation.length) {
         check = true;
+        conversation[0].unreadMsgCountRightUser = 0;
+        await conversation[0].save();
         await db.individualChats.find({conversationId: conversation[0]._id}, function(err, converstionList){
           if(err) {
             res.send(err);
@@ -280,13 +463,15 @@ router.post("/getallindchatR", async function(req, res, next) {
   console.log(req.body);
   if(!check)
   {
-    await db.StartedConversations.find({leftUser:req.body.senderName, rightUser:req.body.receiverName}, async function(err, conversation) {
+    await db.StartedConversations.find({leftUser:req.body.SenderName, rightUser:req.body.ReceiverName}, async function(err, conversation) {
       if(err) {
         res.send(err);
         return;
       }
       if(conversation.length) {
         check = true;
+        conversation[0].unreadMsgCountLeftUser = 0;
+        await conversation[0].save();
         await db.individualChats.find({conversationId: conversation[0]._id}, function(err, converstionList){
           if(err) {
             res.send(err);
