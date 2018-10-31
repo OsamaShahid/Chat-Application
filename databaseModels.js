@@ -2,7 +2,7 @@ var mongoose = require("mongoose");
 var cardentials = require("./cardentials");
 var Schema = mongoose.Schema;
 
-var conString = "mongodb+srv://Usama_ChatRoomAdmin:" + cardentials.pin +"@chatroom-thbkc.mongodb.net/test?retryWrites=true";
+var conString = "mongodb://localhost:27017/test";
 
 mongoose.Promise = Promise
 var Schema = mongoose.Schema;

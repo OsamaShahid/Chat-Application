@@ -19,32 +19,48 @@ const upload = multer({
   storage: storage
 });
 
-router.post('/get/particepents',async (req,res,next)=> {
-  await db.Users.find({}, (error, result) => {
-    try{
-      if(!error)
-      {
-        res.send({
-          AllUsers: result,
-          check: false
-        });
-        return;
-      }
-      else {
-        res.send({check: true});
-        return;
-      }
-    }
-    catch (error)
-    {
-      console.log(error);
-      res.send({check: true});
-      return;
-    }
-  });
+router.post('/get/particepents',async function(req,res,next) {
+
+  try {
+
+    const users = await db.Users.find({});
+
+    res.send({
+      AllUsers: users,
+      check: false
+    });
+
+  } catch (error) {
+
+    res.send({check: true});
+
+  }
+
+  // await db.Users.find({}, (error, result) => {
+  //   try{
+  //     if(!error)
+  //     {
+  //       res.send({
+  //         AllUsers: result,
+  //         check: false
+  //       });
+  //       return;
+  //     }
+  //     else {
+  //       res.send({check: true});
+  //       return;
+  //     }
+  //   }
+  //   catch (error)
+  //   {
+  //     console.log(error);
+  //     res.send({check: true});
+  //     return;
+  //   }
+  // });
 })
 
-router.post('/myStartedConersations', async (req,res,next)=> {
+router.post('/myStartedConersations', async function(req,res,next) {
   await db.StartedConversations.find({}, (err,resultList)=>{
     if(err) {
       res.send({
@@ -59,29 +75,33 @@ router.post('/myStartedConersations', async (req,res,next)=> {
         var resultArray = [];
         for(i=0;i<resultList.length;i++)
         {
+          console.log(resultList[i].leftUser,resultList[i].rightUser,req.body.username)
           if(resultList[i].leftUser === req.body.username || resultList[i].rightUser === req.body.username) {
             if(resultList[i].leftUser === req.body.username) {
-              obj = {
+              conversationobj = {
                 id: resultList[i]._id,
                 senderName: resultList[i].leftUser,
                 receiverName: resultList[i].rightUser,
                 unReadMsgCount: resultList[i].unreadMsgCountLeftUser,
-                lastMessageTime: resultList[i].date
+                lastMessageTime: resultList[i].date,
+                
               };
-              resultArray.push(obj);
+              resultArray.push(conversationobj);
             }
             else {
-              obj = {
+              conversationobj = {
                 id: resultList[i]._id,
                 senderName: resultList[i].rightUser,
                 receiverName: resultList[i].leftUser,
                 unReadMsgCount: resultList[i].unreadMsgCountRightUser,
-                lastMessageTime: resultList[i].date
+                lastMessageTime: resultList[i].date,
+                lastMessage: resultList[i].lastMessage,
               };
-              resultArray.push(obj);
+              resultArray.push(conversationobj);
             }
           }
         }
+        console.log(resultArray);
         res.send({
           check: true,
           conversations: resultArray
@@ -92,25 +112,10 @@ router.post('/myStartedConersations', async (req,res,next)=> {
   });
 });
 
-/* GET users listing. */
-router.get('/:uName', function(req, res, next) {
-  db.Users.find({userName:req.params.uName}, function (err, docs) {
-    if (!docs.length){
-      console.log('No such User exists: ',req.params.uName);
-      next(new Error("No such User exists!"));
-    }else{                
-      res.render('chatroom', {title: 'Welcome to Chat Room', userName: req.params.uName});
-      console.log(req.params.uName)
-      obj.io.emit("NewUserEntered", req.params.uName);
-    }
-  });
-  
-});
-
-router.post('/login', async (req,res, next) => {
+router.post('/login', async function(req,res, next)  {
 
   try{
-    await db.Users.find({userName: req.body.username}, (error, loggedUser) => {
+    await db.Users.find({userName: req.body.username}, async function(error, loggedUser) {
       if(error) {
         res.send(error);
         return;
@@ -136,10 +141,43 @@ router.post('/login', async (req,res, next) => {
 
 })
 
-router.post('/validateSession', async (req,res, next)=> {
+router.post('/reduceIndividChatCount', async function(req,res,next) {
+  await db.StartedConversations.find({}, (err,resultList)=>{
+    if(err) {
+      res.send({
+        check: false,
+        Error: err
+      });
+    }
+    else {
+      if(resultList.length)
+      {
+        var i;
+        for(i=0;i<resultList.length;i++)
+        {
+          console.log(resultList[i].leftUser,resultList[i].rightUser,req.body.username)
+          if((resultList[i].leftUser === req.body.receiverName || resultList[i].rightUser === req.body.receiverName) && (resultList[i].leftUser === req.body.senderName || resultList[i].rightUser === req.body.senderName)) {
+            if(resultList[i].leftUser === req.body.receiverName) {
+              resultList[i].unreadMsgCountLeftUser -= 1;
+            }
+            else {
+              resultList[i].unreadMsgCountRightUser -= 1;
+            }
+          }
+        }
+      }
+      res.send({
+        check: true
+      });
+    }
+    return;
+  });
+});
+
+router.post('/validateSession', async function(req,res, next) {
   try{
     console.log(req.body);
-    await db.Users.find({userName: req.body.Username}, (error, loggedUser) => {
+    await db.Users.find({userName: req.body.Username}, async function(error, loggedUser) {
       if(error) {
         res.send({
           check: true,
@@ -149,9 +187,10 @@ router.post('/validateSession', async (req,res, next)=> {
       }
       if(loggedUser.length)
       {
-        res.send(loggedUser);
+        
         console.log(loggedUser);
         obj.io.emit("NewUserJoined", loggedUser);
+        res.send(loggedUser);
         return
       }
       else {
@@ -167,7 +206,7 @@ router.post('/validateSession', async (req,res, next)=> {
   }
 });
 
-router.post('/img/upload', upload.single("msgfile") , async (req, res) => {
+router.post('/img/upload', upload.single("msgfile") , async function(req, res) {
   try {
     const newChatMsg = new db.Chats({
       name: req.body.userName,
@@ -177,13 +216,14 @@ router.post('/img/upload', upload.single("msgfile") , async (req, res) => {
     await newChatMsg.save();
     //Emit the event
     obj.io.emit("onBroadCastMsg", newChatMsg)
-  } catch (error) {
+  } 
+  catch (error) {
       res.sendStatus(500)
       console.error(error)
   }
 });
 
-router.post('/indvidimg/upload', upload.single("msgfile"), async (req, res, next) => {
+router.post('/indvidimg/upload', upload.single("msgfile"), async function(req, res, next) {
   await db.StartedConversations.find({leftUser:req.body.SenderName, rightUser:req.body.ReceiverName}, async function(err, conversation) {
     if(err) {
       res.send(err);
@@ -207,9 +247,10 @@ router.post('/indvidimg/upload', upload.single("msgfile"), async (req, res, next
         conversation[0].unreadMsgCountRightUser += 1;
         await conversation[0].save();
 
-        res.sendStatus(200)
+        
         //Emit the event
-        obj.io.emit("indChat", newindividualChatMsg)
+        await obj.io.emit("indChat", newindividualChatMsg)
+        res.sendStatus(200)
         return;
       }
       catch (error) {
@@ -241,9 +282,10 @@ router.post('/indvidimg/upload', upload.single("msgfile"), async (req, res, next
             resultChat[0].unreadMsgCountLeftUser += 1;
             await resultChat[0].save();
 
-            res.sendStatus(200)
+            
             //Emit the event
-            obj.io.emit("indChat", newindividualChatMsg)
+            await obj.io.emit("indChat", newindividualChatMsg)
+            res.sendStatus(200)
             return;
           }
           catch (error) {
@@ -279,9 +321,9 @@ router.post('/indvidimg/upload', upload.single("msgfile"), async (req, res, next
             newStartedCnversation.unreadMsgCountLeftUser += 1;
             await newStartedCnversation.save();
 
-            res.sendStatus(200)
             //Emit the event
-            obj.io.emit("indChat", newindividualChatMsg)
+            await obj.io.emit("indChat", newindividualChatMsg)
+            res.sendStatus(200)
             return;
         
           }
@@ -301,15 +343,15 @@ router.post("/putChats", async (req, res, next) => {
   try {
       var chat = new db.Chats(req.body)
       await chat.save()
-      res.sendStatus(200)
       obj.io.emit("onBroadCastMsg", chat)
+      res.sendStatus(200)
   } catch (error) {
       res.sendStatus(500)
       console.error(error)
   }
-})
+});
 
-router.post('/putIndChats', async (req, res, next) => {
+router.post('/putIndChats', async function(req, res, next) {
   await db.StartedConversations.find({leftUser:req.body.SenderName, rightUser:req.body.ReceiverName}, async function(err, conversation) {
     if(err) {
       res.send(err);
@@ -327,7 +369,6 @@ router.post('/putIndChats', async (req, res, next) => {
           chatMessage: req.body.chat
         });
         await newindividualChatMsg.save();
-        res.sendStatus(200)
 
         conversation[0].date = req.body.currentDateTime;
         conversation[0].lastMessage = req.body.chat;
@@ -335,6 +376,7 @@ router.post('/putIndChats', async (req, res, next) => {
         await conversation[0].save();
         //Emit the event
         obj.io.emit("indChat", newindividualChatMsg)
+        res.sendStatus(200)
         return;
       }
       catch (error) {
@@ -365,9 +407,9 @@ router.post('/putIndChats', async (req, res, next) => {
             resultChat[0].lastMessage = req.body.chat;
             resultChat[0].unreadMsgCountLeftUser += 1;
             await resultChat[0].save();
-            res.sendStatus(200)
             //Emit the event
             obj.io.emit("indChat", newindividualChatMsg)
+            res.sendStatus(200)
             return;
           }
           catch (error) {
@@ -403,10 +445,9 @@ router.post('/putIndChats', async (req, res, next) => {
             newStartedCnversation.lastMessage = req.body.chat;
             newStartedCnversation.unreadMsgCountLeftUser += 1;
             await newStartedCnversation.save();
-
-            res.sendStatus(200)
             //Emit the event
             obj.io.emit("indChat", newindividualChatMsg)
+            res.sendStatus(200)
             return;
         
           }
