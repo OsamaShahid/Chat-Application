@@ -22,7 +22,7 @@ async function getIndividChat(req,res,next) {
 async function getIndividChatR(req,res,next) {
     try {
         const convList = await individualChatManager.getIndividualChatFromDataBase(req.body.SenderName,req.body.ReceiverName,false);
-        if(convList) {
+        if(convList.length) {
             console.log(convList);
             res.send({
               check: true,

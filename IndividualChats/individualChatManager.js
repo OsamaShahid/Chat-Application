@@ -1,8 +1,9 @@
 const individualChatHandler = require('./individualChatHandler');
+const IndividualChatHandler = require('./individualChatHandler')
 const conversationHandler = require('../StartedConversations/ConversationHandler');
-const individualChatUtil = require('./individualChatUtil');
+const IndividualChatUtil = require('./individualChatUtil');
 const conversationUtil = require('../StartedConversations/ConversationUtil');
-var db = require('../database');
+const db = require('../database');
 
 async function getIndividualChatFromDataBase(receivername,sendername,check) {
     const conv = await conversationHandler.getConversation(receivername,sendername);
@@ -15,8 +16,8 @@ async function getIndividualChatFromDataBase(receivername,sendername,check) {
             conv[0].unreadMsgCountLeftUser = 0;
         }
         await conversationHandler.saveObject(conv[0]);
-        const indvidualChat = await individualChatHandler.getIndividualChat(conv[0]._id);
-        if(individualChatUtil.isValidIndividualChat(indvidualChat)) {
+        const indvidualChat = await IndividualChatHandler.getIndividualChat(conv[0]._id);
+        if(IndividualChatUtil.isValidIndividualChat(indvidualChat)) {
             return indvidualChat;
         }
         else {
@@ -106,7 +107,7 @@ async function saveImageChatMessageInDatabase(body,file) {
             chatImage: "http://192.168.34.54:4747/uploads/" + file.filename,
             chatMessage: body.chat
         };
-        const chatMsg = await individualChatHandler.saveNewDocumentObject(newindividualChatMsg);
+        const chatMsg = await IndividualChatHandler.saveNewDocumentObject(newindividualChatMsg);
         conv[0].date = body.currentDateTime;
         conv[0].lastMessage = body.chat;
         conv[0].unreadMsgCountRightUser += 1;
@@ -124,7 +125,7 @@ async function saveImageChatMessageInDatabase(body,file) {
                 chatImage: "http://192.168.34.54:4747/uploads/" + file.filename,
                 chatMessage: body.chat
             };
-            const chatMsg = await individualChatHandler.saveNewDocumentObject(newindividualChatMsg);
+            const chatMsg = await IndividualChatHandler.saveNewDocumentObject(newindividualChatMsg);
             conve[0].date = body.currentDateTime;
             conve[0].lastMessage = body.chat;
             conve[0].unreadMsgCountLeftUser += 1;
@@ -150,7 +151,7 @@ async function saveImageChatMessageInDatabase(body,file) {
                 chatImage: "http://192.168.34.54:4747/uploads/" + file.filename,
                 chatMessage: body.chat
               };
-              var chatMessage = await individualChatHandler.saveNewDocumentObject(newindividualChatMsg);
+              var chatMessage = await IndividualChatHandler.saveNewDocumentObject(newindividualChatMsg);
   
               newConv.date = body.currentDateTime;
               newConv.lastMessage = body.chat;

@@ -1,10 +1,11 @@
- function isValidIndividualChat(individChat) {
-    if(individChat.legth) {
-        return true
-    }
-    else {
-        return false;
+ class IndividualChatUtil {
+    static isValidIndividualChat(individChat) {
+        if(individChat.legth) {
+            return true
+        }
+        else {
+            return false;
+        }
     }
  }
-
- module.exports.isValidIndividualChat = isValidIndividualChat;
+ module.exports = IndividualChatUtil;

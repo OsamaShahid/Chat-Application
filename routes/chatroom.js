@@ -5,8 +5,10 @@ var db = require('../database');
 var multer  = require('multer');
 const conversationCtrl = require('../StartedConversations/ConversationCtrl');
 const userCtrl = require("../Users/UserCtrl");
-const chatCtrl = require('../Chats/chatCtrl');
+const ChatCtrl = require('../Chats/chatCtrl');
 const individualChatCtrl = require('../IndividualChats/individualChatCtrl');
+
+const chatCtrl = new ChatCtrl();
 // Set The Storage Engine
 const storage = multer.diskStorage({
   destination: function(req,file,cb) {
