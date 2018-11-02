@@ -62,5 +62,15 @@ function reduceUnreadMsgCountFromConversation(body,resultList) {
   }
 }
 
+function isvalidConversation(conv) {
+  if(conv.length) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 module.exports.processResultList = processResultList;
 module.exports.reduceUnreadMsgCountFromConversation = reduceUnreadMsgCountFromConversation;
+module.exports.isvalidConversation = isvalidConversation;
