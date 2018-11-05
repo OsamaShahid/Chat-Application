@@ -1,7 +1,8 @@
-var express = require('express');
+const express = require('express');
 var router = express.Router();
-var userCtrl = require("../Users/UserCtrl");
+const UserCtrl = require("../Users/UserCtrl");
 
+const userCtrl = new UserCtrl();
 
 //here we will save the username of the New user
 router.post("/setUserName", userCtrl.setUserName);

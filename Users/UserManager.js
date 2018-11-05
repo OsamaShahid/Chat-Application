@@ -1,27 +1,28 @@
-var userHandler = require("./UserHandler")
+const UserHandler = require("./UserHandler")
+const userHandler = new UserHandler();
 
-function saveUserMiddleware(body) {
-    var userArrived = {
-        userName: body.username
-    };
-    return userHandler.makeNewUser(userArrived);
-}
-
-async function getUserFromDatabase(body) {
-    const user = await userHandler.getUser(body.username);
-    if(user) {
-        return user;
+class UserManager {
+    saveUserMiddleware(body) {
+        var userArrived = {
+            userName: body.username
+        };
+        return userHandler.makeNewUser(userArrived);
     }
-    else {
-        return false;
+    
+    async getUserFromDatabase(body) {
+        const user = await userHandler.getUser(body.username);
+        if(user) {
+            return user;
+        }
+        else {
+            return false;
+        }
     }
-}
+    
+    async getParticepentsFromDataBase() {
+        const users = await userHandler.getAllUsers();
+        return users;
+    }
+};
 
-async function getParticepentsFromDataBase() {
-    const users = await userHandler.getAllUsers();
-    return users;
-}
-
-module.exports.saveUserMiddleware = saveUserMiddleware;
-module.exports.getUserFromDatabase = getUserFromDatabase;
-module.exports.getParticepentsFromDataBase = getParticepentsFromDataBase;
+module.exports = UserManager;

@@ -1,5 +1,5 @@
  class IndividualChatUtil {
-    static isValidIndividualChat(individChat) {
+    isValidIndividualChat(individChat) {
         if(individChat.legth) {
             return true
         }

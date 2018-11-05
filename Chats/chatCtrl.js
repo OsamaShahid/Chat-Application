@@ -1,9 +1,11 @@
 const ChatManager = require('./chatManager');
 
-class chatCtrl {
+const chatManager = new ChatManager()
+
+class ChatCtrl {
     async getAllChats(req,res,next) {
         try {
-            const allChats = await ChatManager.getchatsfromdatabase();
+            const allChats = await chatManager.getchatsfromdatabase();
             res.send({
                 chatsToSend: allChats,
                 check: false
@@ -17,7 +19,7 @@ class chatCtrl {
     
     async saveChatMessage(req,res,next) {
         try {
-            const chat = await ChatManager.saveChatInDatabase(req.body)
+            const chat = await chatManager.saveChatInDatabase(req.body)
             require('../bin/www').io.emit("onBroadCastMsg", chat)
             res.sendStatus(200)
         } catch (error) {
@@ -28,7 +30,7 @@ class chatCtrl {
     
     async saveImageChatMessage(req,res,next) {
         try {
-            const chat = await ChatManager.saveChatInDatabase({
+            const chat = await chatManager.saveChatInDatabase({
                 name: req.body.userName,
                 chat: req.body.chatMsg,
                 chatImage: "http://192.168.34.54:4747/uploads/" + req.file.filename
@@ -42,4 +44,4 @@ class chatCtrl {
     }
 };
 
-module.exports = chatCtrl;
+module.exports = ChatCtrl;

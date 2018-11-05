@@ -1,4 +1,4 @@
-var db = require('../database');
+const db = require('../database');
 
 class ConversationHandler {
     async getConversations() {

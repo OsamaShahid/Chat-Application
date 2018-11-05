@@ -1,13 +1,15 @@
 const ChatHandler = require('./chatHandler');
 
+const chatHandler = new ChatHandler();
+
 class ChatManager {
-    static async getchatsfromdatabase() {
-        const chats = await ChatHandler.getChats();
+    async getchatsfromdatabase() {
+        const chats = await chatHandler.getChats();
         return chats;
     }
     
-    static async saveChatInDatabase(body) {
-        const chat = await ChatHandler.saveDocument(body);
+    async saveChatInDatabase(body) {
+        const chat = await chatHandler.saveDocument(body);
         return chat;
     }
 }

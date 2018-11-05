@@ -1,23 +1,27 @@
-var conversationHandler = require('./ConversationHandler');
-var conversationUtil = require('./ConversationUtil');
+const ConversationHandler = require('./ConversationHandler');
+const ConversationUtil = require('./ConversationUtil');
 
-async function getConversationsFromDatabase(body) {
-    const resultList = await conversationHandler.getConversations();
-    const resultArray = conversationUtil.processResultList(body,resultList);
-    return resultArray;
-}
+const conversationHandler = new ConversationHandler();
+const conversationUtil = new ConversationUtil();
 
-async function getConversationsWithreducedMsgCount(body) {
-    const conversationList = await conversationHandler.getConversations();
-    const conversationObject = conversationUtil.reduceUnreadMsgCountFromConversation(body,conversationList)
-    if(conversationObject) {
-        await conversationHandler.saveObject(conversationObject);
-        return true;
+class ConversationManager {
+    async getConversationsFromDatabase(body) {
+        const resultList = await conversationHandler.getConversations();
+        const resultArray = conversationUtil.processResultList(body,resultList);
+        return resultArray;
     }
-    else {
-        return false
+    
+    async getConversationsWithreducedMsgCount(body) {
+        const conversationList = await conversationHandler.getConversations();
+        const conversationObject = conversationUtil.reduceUnreadMsgCountFromConversation(body,conversationList)
+        if(conversationObject) {
+            await conversationHandler.saveObject(conversationObject);
+            return true;
+        }
+        else {
+            return false
+        }
     }
-}
+};
 
-module.exports.getConversationsFromDatabase = getConversationsFromDatabase;
-module.exports.getConversationsWithreducedMsgCount = getConversationsWithreducedMsgCount;
+module.exports = ConversationManager;

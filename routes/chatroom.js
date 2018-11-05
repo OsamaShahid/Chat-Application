@@ -1,14 +1,17 @@
-var express = require('express');
+const express = require('express');
 var router = express.Router();
-const obj = require('../bin/www');
-var db = require('../database');
-var multer  = require('multer');
-const conversationCtrl = require('../StartedConversations/ConversationCtrl');
-const userCtrl = require("../Users/UserCtrl");
+const multer  = require('multer');
+
+const ConversationCtrl = require('../StartedConversations/ConversationCtrl');
+const UserCtrl = require("../Users/UserCtrl");
 const ChatCtrl = require('../Chats/chatCtrl');
-const individualChatCtrl = require('../IndividualChats/individualChatCtrl');
+const IndividualChatCtrl = require('../IndividualChats/individualChatCtrl');
 
 const chatCtrl = new ChatCtrl();
+const userCtrl = new UserCtrl();
+const conversationCtrl = new ConversationCtrl();
+const individualChatCtrl = new IndividualChatCtrl();
+
 // Set The Storage Engine
 const storage = multer.diskStorage({
   destination: function(req,file,cb) {
@@ -24,7 +27,7 @@ const upload = multer({
   storage: storage
 });
 
-router.post('/get/particepents',userCtrl.getParticepents)
+router.post('/get/particepents',userCtrl.getParticepents);
 
 router.post('/myStartedConersations', conversationCtrl.getConversationsResult);
 
@@ -42,7 +45,7 @@ router.post('/img/upload', upload.single("msgfile") , chatCtrl.saveImageChatMess
 
 router.post('/indvidimg/upload', upload.single("msgfile"), individualChatCtrl.saveIndividualImageChatMessage);
 
-router.post('/putIndChats', individualChatCtrl.saveIndividChatMessage);
+router.post('/putIndChats', individualChatCtrl.saveIndividualChatMessage);
 
 router.post("/getallindchat", individualChatCtrl.getIndividChat);
 
